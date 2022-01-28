@@ -1,0 +1,147 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Deploy StarRocks on Amazon Web Services in a new VPC.'
+Metadata:
+  LICENSE: Apache License Version 2.0
+  QuickStartDocumentation:
+    EntrypointName: "Parameters for deploying StatRocsk into an new VPC"
+    Order: "1"
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: StarRocks configuration
+      Parameters:
+      - StarRocksFeNodeCount
+      - StarRocksFeNodeInstanceType
+      - StarRocksBeNodeCount
+      - StarRocksBeNodeInstanceType
+      - StarRocksBrokerNodeCount
+      - StarRocksBrokerNodeInstanceType
+      - LatestAmiId
+    ParameterLabels:
+      StarRocksFeNodeCount:
+        default: Number of StarRocks Fe
+      StarRocksFeNodeInstanceType:
+        default: Fe instance type
+      StarRocksBeNodeCount:
+        default: Number of StarRocks Be
+      StarRocksBeNodeInstanceType:
+        default: Be instance type
+      StarRocksBrokerNodeCount:
+        default: Number of StarRocks Broker
+      StarRocksBrokerNodeInstanceType:
+        default: Broker instance type
+      LatestAmiId:
+        default: Latest Amazon Linux2 AMI ID
+Parameters:
+  StarRocksFeNodeCount:
+    Type: String
+    Default: 1
+    Description: Number of StarRocks Fe
+    AllowedValues: 
+      - 1
+      - 2
+      - 3
+  StarRocksFeNodeInstanceType:
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+    Default: t2.micro
+    Description: Amazon EC2 instance type for fe instances.
+    Type: String
+  StarRocksBeNodeCount:
+    Type: String
+    Default: 3
+    Description: Number of StarRocks Be
+    AllowedValues: 
+      - 3
+      - 4
+      - 5
+      - 6
+  StarRocksBeNodeInstanceType:
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+    Default: t2.micro
+    Description: Amazon EC2 instance type for be instances.
+    Type: String
+  StarRocksBrokerNodeCount:
+    Type: String
+    Default: 3
+    Description: Number of StarRocks Broker
+    AllowedValues: 
+      - 3
+      - 4
+      - 5
+      - 6
+  StarRocksBrokerNodeInstanceType:
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+      - t3.xlarge
+      - t3.2xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+    Default: t2.micro
+    Description: Amazon EC2 instance type for Broker instances.
+    Type: String
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux2 AMI in an AWS CloudFormation template.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/starrocks
+Conditions:
+Resources:
+  FeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+    TemplateURL:
+    Parameters:
+  BeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+    TemplateURL:
+    Parameters:
+Outputs:

@@ -1,0 +1,260 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Deploy StarRocks-FE on Amazon Web Services'
+Metadata:
+  LICENSE: Apache License Version 2.0
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Network configuration
+      Parameters:
+      - PrivateSubnetID
+    - Label:
+        default: Node type configuration
+      Parameters:
+      - FeInstanceType
+    - Label:
+        default: Fe configuration
+      Parameters:
+      - LogDir
+      - SysLogLevel
+      - MetaDir
+      - HttpPort
+      - RpcPort
+      - QueryPort
+      - EditLogPort
+      - MysqlServiceNioEnabled
+      - EnableSparkLoad
+      - SparkHomeDefaultDir
+      - YarnClientPath
+      - CatalogTrashExpireSecond
+      - LogRollSizeMb
+      - SysLogRollNum
+      - AuditLogDir
+      - AuditLogModules
+      - MetaDelayTolerationSecond
+      - QeMaxConnection
+      - MaxConnPerUser
+      - QeQueryTimeoutSecond
+      - QeSlowLogMs
+      - LabelKeepMaxSecond
+      - EnableNewPlanner
+      - StreamLoadDefaultTimeoutSecond
+      - TabletCreateTimeoutSecond
+      - MaxCreateTableTimeoutSecond
+      - ThriftClientTimeoutMs
+      - CatalogTryLockTimeoutMs
+      - IgnoreUnknownLogId
+    ParameterLabels:
+      PrivateSubnetID:
+        default: Private subnet ID
+      FeInstanceType:
+        default: Fe instance type
+      LogDir:
+        default: Dir to save fe log
+      SysLogLevel:
+        default: Sys Log Level
+      MetaDir:
+        default: Meta data dir
+      HttpPort:
+        default: Fe http port
+      RpcPort:
+        default: Fe rpc port
+      QueryPort:
+        default: Fe query port
+      EditLogPort:
+        default: Fe edit log port
+      MysqlServiceNioEnabled:
+        default: Mysql service nio enabled
+      EnableSparkLoad:
+        default: Enable spark load
+      SparkHomeDefaultDir:
+        default: Spark home default dir
+      YarnClientPath:
+        default: Yarn client path
+      CatalogTrashExpireSecond:
+        default: Catalog trash expire second
+      LogRollSizeMb:
+        default: Log roll size mb
+      SysLogRollNum:
+        default: Sys log roll num
+      AuditLogDir: 
+        default: Audit log dir
+      AuditLogModules:
+        default: Audit log modules
+      MetaDelayTolerationSecond:
+        default: Meta delay toleration second
+      QeMaxConnection:
+        default: Qe max connection
+      MaxConnPerUser:
+        default: Max connPerUser
+      QeQueryTimeoutSecond:
+        default: Qe query timeout second
+      QeSlowLogMs: 
+        default: Qe slow log ms
+      LabelKeepMaxSecond:
+        default: Label keep max second
+      EnableNewPlanner:
+        default: Enable new planner
+      StreamLoadDefaultTimeoutSecond:
+        default: StreamLoad default timeout second
+      TabletCreateTimeoutSecond:
+        default: Tablet create timeout second
+      MaxCreateTableTimeoutSecond:
+        default: Max create table timeout second
+      ThriftClientTimeoutMs:
+        default: Thrift client timeout ms
+      CatalogTryLockTimeoutMs:
+        default: Catalog try lock timeout ms
+      IgnoreUnknownLogId:
+        default: Ignore unknown logId
+Parameters: 
+  PrivateSubnetID: 
+    Description: The Private Subnet ID that you want to deploy Fe nodes.
+    Type: String
+  FeInstanceType: 
+    Description: Amazon EC2 instance type for the fe nodes.
+    Type: String
+    Default: i3.2xlarge
+    AllowedValues: 
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.8xlarge
+      - i3.large
+      - i3.xlarge
+      - i3.2xlarge
+      - i3.4xlarge
+      - i3.8xlarge
+      - i3.16xlarge
+  LogDir:
+    Description: Dir to save log, please to fill in the absolute path
+    Type: String
+  SysLogLevel:
+    Description: Sys Log Level, please select from the drop-down menu
+    Type: String
+    AllowedValues: 
+      - INFO
+      - WARN
+      - ERROR
+      - FATAL
+  MetaDir:
+    Description: Dir to save mete data, please to fill in the absolute path
+    Type: String
+  HttpPort:
+    Description: Fe http port
+    Type: String
+  RpcPort:
+    Description: Fe rpc port
+    Type: String
+  QueryPort:
+    Description: Fe query port
+    Type: String
+  EditLogPort:
+    Description: Fe edit log port
+    Type: String
+  MysqlServiceNioEnabled:
+    Description: Mysql service nio enabled
+    Type: String
+    AllowedValues: 
+      - True
+      - False
+  EnableSparkLoad:
+    Description: Enable spark load
+    Type: String
+    AllowedValues: 
+      - True
+      - False
+  SparkHomeDefaultDir:
+    Description: Spark home default dir, please to fill in the absolute path
+    Type: String
+  YarnClientPath:
+    Description: Yarn client path, please to fill in the absolute path
+    Type: String    
+  CatalogTrashExpireSecond:
+    Description: Catalog trash expire second
+    Type: String
+  LogRollSizeMb:
+    Description: Log roll size mb
+    Type: String
+  SysLogRollNum:
+    Description: Sys log roll num
+    Type: String
+  AuditLogDir:
+    Description: Audit log dir
+    Type: String
+  AuditLogModules:
+    Description: Audit log modules
+    Type: String
+  MetaDelayTolerationSecond:
+    Description: Meta delay toleration second
+    Type: String
+  QeMaxConnection:
+    Description: Qe max connection
+    Type: String
+  MaxConnPerUser:
+    Description: Max connPerUser
+    Type: String
+  QeQueryTimeoutSecond:
+    Description: Qe query timeout second
+    Type: String
+  QeSlowLogMs:
+    Description: Qe slow log ms
+    Type: String
+  LabelKeepMaxSecond:
+    Description: Label keep max second
+    Type: String
+  EnableNewPlanner:
+    Description: Enable new planner
+    Type: String
+    AllowedValues: 
+      - True
+      - False
+  StreamLoadDefaultTimeoutSecond:
+    Description: StreamLoad default timeout second
+    Type: String
+  TabletCreateTimeoutSecond:
+    Description: Tablet create timeout second
+    Type: String
+  MaxCreateTableTimeoutSecond:
+    Description: Max create table timeout second
+    Type: String
+  ThriftClientTimeoutMs:
+    Description: Thrift client timeout ms
+    Type: String
+  CatalogTryLockTimeoutMs:
+    Description: Catalog try lock timeout ms
+    Type: String
+  IgnoreUnknownLogId:
+    Description: Ignore unknown logId
+    Type: String
+    AllowedValues: 
+      - True
+      - False
+Resources:
+  FeInstance:
+    Type: AWS::EC2::Instance
+    Metadata:
+    Properties:
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
