@@ -9,6 +9,10 @@ Metadata:
       Parameters:
       - PrivateSubnetID
     - Label:
+        default: EC2 configuration
+      Parameters:
+      - KeyPairName
+    - Label:
         default: Node type configuration
       Parameters:
       - BeInstanceType
@@ -36,9 +40,12 @@ Metadata:
       - EnableMetricCalculator
       - DisableStoragePageCache
       - DisableColumnPool
+      - LatestAmiId
     ParameterLabels:
       PrivateSubnetID:
         default: Private subnet ID
+      KeyPairName:
+        default: Key pair name
       BeInstanceType:
         default: Be instance type
       SysLogLevel:
@@ -83,14 +90,21 @@ Metadata:
         default: Disable storage page cache
       DisableColumnPool:
         default: Disable column pool
+      LatestAmiId:
+        default: AMI with StarRocks
 Parameters: 
   PrivateSubnetID: 
     Description: The Private Subnet ID that you want to deploy Fe nodes.
     Type: String
+    Default: 10.0.0.0/19
+  KeyPairName: 
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
+    Default: CFT-Test
   BeInstanceType: 
     Description: Amazon EC2 instance type for the be nodes.
     Type: String
-    Default: i3.2xlarge
+    Default: t2.micro
     AllowedValues: 
       - t2.micro
       - t2.small
@@ -124,6 +138,7 @@ Parameters:
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
+    Default: INFO
     AllowedValues: 
       - INFO
       - WARN
@@ -132,78 +147,125 @@ Parameters:
   SysLogDir:
     Description: Dir to save be log, please to fill in the absolute path
     Type: String
+    Default: ccc
   SysLogRollNum: 
     Description: Sys log roll num
     Type: String
+    Default: ccc
   SysLogRollMode:
     Description: Sys log roll mode
     Type: String
+    Default: ccc
   SysLogVerboseModules:
     Description: Sys log verboseModules
     Type: String
+    Default: ccc
   BePort:
     Description: Be port
     Type: String
+    Default: ccc
   BeRpcPort:
     Description: Be Rpc port
     Type: String
+    Default: ccc
   WebserverPort:
     Description: Webserver port
     Type: String
+    Default: ccc
   HeartbeatServicePort:
     Description: Heartbeat service port
     Type: String
+    Default: ccc
   BrpcPort:
     Description: Brpc port
     Type: String
+    Default: ccc
   BitmapMaxFilterRatio:
     Description: Bitmap max filter ratio
     Type: String
+    Default: ccc
   LogBufferLevel:
     Description: Log buffer level
     Type: String
+    Default: ccc
   TrashFileExpireTimeSec:
     Description: Trash file expireTime sec
     Type: String
+    Default: ccc
   DefaultRowsetType:
     Description: Default rowset type
     Type: String
+    Default: ccc
   MemLimit:
     Description: Mem limit
     Type: String
+    Default: ccc
   TcUseMemoryMin:
     Description: Tc UseMemory min
     Type: String
+    Default: ccc
   FragmentPoolThreadNumMax:
     Description: Fragment pool thread num max
     Type: String
+    Default: ccc
   ThriftClientRetryIntervalMs:
     Description: Thrift client retry interval ms
     Type: String
+    Default: ccc
   EnableMetricCalculator:
     Description: Enable metric calculator
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
   DisableStoragePageCache:
     Description: Disable storage page cache
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
   DisableColumnPool:
     Description: Disable column pool
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: String
+    Default: ami-03f46af1dc8d54622
 Resources:
-  FeInstance:
+  BeInstance:
     Type: AWS::EC2::Instance
     Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
     Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref BeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          yum update -y aws-cfn-bootstrap
+          cd /home/centos/starrocks/2.0.1/StarRocks-2.0.1/be
+          mkdir -p storage
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BeInstance --configsets setup --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource BeInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
-        Timeout: "PT60M"
+        Timeout: "PT10M"
