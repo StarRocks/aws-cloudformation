@@ -44,6 +44,7 @@ Metadata:
       - ThriftClientTimeoutMs
       - CatalogTryLockTimeoutMs
       - IgnoreUnknownLogId
+      - LatestAmiId
     ParameterLabels:
       PrivateSubnetID:
         default: Private subnet ID
@@ -107,14 +108,21 @@ Metadata:
         default: Catalog try lock timeout ms
       IgnoreUnknownLogId:
         default: Ignore unknown logId
+      LatestAmiId:
+        default: AMI with StarRocks
 Parameters: 
   PrivateSubnetID: 
     Description: The Private Subnet ID that you want to deploy Fe nodes.
     Type: String
+    Default: 10.0.0.0/19
+  KeyPairName: 
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
+    Default: CFT-Test
   FeInstanceType: 
     Description: Amazon EC2 instance type for the fe nodes.
     Type: String
-    Default: i3.2xlarge
+    Default: t2.micro
     AllowedValues: 
       - t2.micro
       - t2.small
@@ -148,9 +156,11 @@ Parameters:
   LogDir:
     Description: Dir to save log, please to fill in the absolute path
     Type: String
+    Default: To be determined
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
+    Default: INFO
     AllowedValues: 
       - INFO
       - WARN
@@ -159,102 +169,161 @@ Parameters:
   MetaDir:
     Description: Dir to save mete data, please to fill in the absolute path
     Type: String
+    Default: To be determined
   HttpPort:
     Description: Fe http port
     Type: String
+    Default: To be determined
   RpcPort:
     Description: Fe rpc port
     Type: String
+    Default: To be determined
   QueryPort:
     Description: Fe query port
     Type: String
+    Default: To be determined
   EditLogPort:
     Description: Fe edit log port
     Type: String
+    Default: To be determined
   MysqlServiceNioEnabled:
     Description: Mysql service nio enabled
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
   EnableSparkLoad:
     Description: Enable spark load
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
   SparkHomeDefaultDir:
     Description: Spark home default dir, please to fill in the absolute path
     Type: String
+    Default: To be determined
   YarnClientPath:
     Description: Yarn client path, please to fill in the absolute path
-    Type: String    
+    Type: String
+    Default: To be determined
   CatalogTrashExpireSecond:
     Description: Catalog trash expire second
     Type: String
+    Default: To be determined
   LogRollSizeMb:
     Description: Log roll size mb
     Type: String
+    Default: To be determined
   SysLogRollNum:
     Description: Sys log roll num
     Type: String
+    Default: To be determined
   AuditLogDir:
     Description: Audit log dir
     Type: String
+    Default: To be determined
   AuditLogModules:
     Description: Audit log modules
     Type: String
+    Default: To be determined
   MetaDelayTolerationSecond:
     Description: Meta delay toleration second
     Type: String
+    Default: To be determined
   QeMaxConnection:
     Description: Qe max connection
     Type: String
+    Default: To be determined
   MaxConnPerUser:
     Description: Max connPerUser
     Type: String
+    Default: To be determined
   QeQueryTimeoutSecond:
     Description: Qe query timeout second
     Type: String
+    Default: To be determined
   QeSlowLogMs:
     Description: Qe slow log ms
     Type: String
+    Default: To be determined
   LabelKeepMaxSecond:
     Description: Label keep max second
     Type: String
+    Default: To be determined
   EnableNewPlanner:
     Description: Enable new planner
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
   StreamLoadDefaultTimeoutSecond:
     Description: StreamLoad default timeout second
     Type: String
+    Default: To be determined
   TabletCreateTimeoutSecond:
     Description: Tablet create timeout second
     Type: String
+    Default: To be determined
   MaxCreateTableTimeoutSecond:
     Description: Max create table timeout second
     Type: String
+    Default: To be determined
   ThriftClientTimeoutMs:
     Description: Thrift client timeout ms
     Type: String
+    Default: To be determined
   CatalogTryLockTimeoutMs:
     Description: Catalog try lock timeout ms
     Type: String
+    Default: To be determined
   IgnoreUnknownLogId:
     Description: Ignore unknown logId
     Type: String
+    Default: True
     AllowedValues: 
       - True
       - False
+  LatestAmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: String
+    Default: ami-0982a5d460efbc056
 Resources:
   FeInstance:
     Type: AWS::EC2::Instance
     Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
     Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref FeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeInstance --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          mkdir -p meta
+          bin/start_fe.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
         Timeout: "PT60M"
+Outputs:
+  FeInstance:
+    Description: fe instance
+    Value: !Ref FeInstance
+  FeInstancePrivateIp:
+    Value: !GetAtt FeInstance.PrivateIp
