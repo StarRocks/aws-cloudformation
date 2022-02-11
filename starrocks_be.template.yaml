@@ -147,71 +147,71 @@ Parameters:
   SysLogDir:
     Description: Dir to save be log, please to fill in the absolute path
     Type: String
-    Default: ccc
+    Default: To be determined
   SysLogRollNum: 
     Description: Sys log roll num
     Type: String
-    Default: ccc
+    Default: To be determined
   SysLogRollMode:
     Description: Sys log roll mode
     Type: String
-    Default: ccc
+    Default: To be determined
   SysLogVerboseModules:
     Description: Sys log verboseModules
     Type: String
-    Default: ccc
+    Default: To be determined
   BePort:
     Description: Be port
     Type: String
-    Default: ccc
+    Default: To be determined
   BeRpcPort:
     Description: Be Rpc port
     Type: String
-    Default: ccc
+    Default: To be determined
   WebserverPort:
     Description: Webserver port
     Type: String
-    Default: ccc
+    Default: To be determined
   HeartbeatServicePort:
     Description: Heartbeat service port
     Type: String
-    Default: ccc
+    Default: To be determined
   BrpcPort:
     Description: Brpc port
     Type: String
-    Default: ccc
+    Default: To be determined
   BitmapMaxFilterRatio:
     Description: Bitmap max filter ratio
     Type: String
-    Default: ccc
+    Default: To be determined
   LogBufferLevel:
     Description: Log buffer level
     Type: String
-    Default: ccc
+    Default: To be determined
   TrashFileExpireTimeSec:
     Description: Trash file expireTime sec
     Type: String
-    Default: ccc
+    Default: To be determined
   DefaultRowsetType:
     Description: Default rowset type
     Type: String
-    Default: ccc
+    Default: To be determined
   MemLimit:
     Description: Mem limit
     Type: String
-    Default: ccc
+    Default: To be determined
   TcUseMemoryMin:
     Description: Tc UseMemory min
     Type: String
-    Default: ccc
+    Default: To be determined
   FragmentPoolThreadNumMax:
     Description: Fragment pool thread num max
     Type: String
-    Default: ccc
+    Default: To be determined
   ThriftClientRetryIntervalMs:
     Description: Thrift client retry interval ms
     Type: String
-    Default: ccc
+    Default: To be determined
   EnableMetricCalculator:
     Description: Enable metric calculator
     Type: String
@@ -236,7 +236,7 @@ Parameters:
   LatestAmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: String
-    Default: ami-03f46af1dc8d54622
+    Default: ami-0989a4960c5916d05
 Resources:
   BeInstance:
     Type: AWS::EC2::Instance
@@ -259,13 +259,18 @@ Resources:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
-          yum update -y aws-cfn-bootstrap
-          cd /home/centos/starrocks/2.0.1/StarRocks-2.0.1/be
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           mkdir -p storage
           bin/start_be.sh --daemon
-          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource BeInstance --configsets setup --region ${AWS::Region}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource BeInstance --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
         Timeout: "PT10M"
+Outputs:
+  BeInstance:
+    Description: be instance
+    Value: !Ref BeInstance
+  BeInstancePrivateIp:
+    Value: !GetAtt BeInstance.PrivateIp
