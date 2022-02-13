@@ -236,7 +236,7 @@ Parameters:
   LatestAmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: String
-    Default: ami-0989a4960c5916d05
+    Default: ami-0d1a988128feef741
 Resources:
   BeInstance:
     Type: AWS::EC2::Instance

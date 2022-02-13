@@ -289,7 +289,7 @@ Parameters:
   LatestAmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: String
-    Default: ami-0982a5d460efbc056
+    Default: ami-0d1a988128feef741
 Resources:
   FeInstance:
     Type: AWS::EC2::Instance
@@ -315,6 +315,7 @@ Resources:
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeInstance --region ${AWS::Region}
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
           mkdir -p meta
+          source /etc/profile
           bin/start_fe.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeInstance --region ${AWS::Region}
     CreationPolicy:
