@@ -238,7 +238,7 @@ Parameters:
     Type: String
     Default: ami-0d1a988128feef741
 Resources:
-  BeInstance:
+  BeInstance1:
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install be instance replica 1
@@ -259,18 +259,88 @@ Resources:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
-          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance --region ${AWS::Region}
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance1 --region ${AWS::Region}
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           mkdir -p storage
           bin/start_be.sh --daemon
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance --region ${AWS::Region}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance1 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
+  BeInstance2:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref BeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance2 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          mkdir -p storage
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance2 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
+  BeInstance3:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref BeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance3 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          mkdir -p storage
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance3 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
         Timeout: "PT10M"
 Outputs:
-  BeInstance:
-    Description: be instance
-    Value: !Ref BeInstance
-  BeInstancePrivateIp:
-    Value: !GetAtt BeInstance.PrivateIp
+  BeInstance1:
+    Description: be instance 1
+    Value: !Ref BeInstance1
+  BeInstancePrivateIp1:
+    Value: !GetAtt BeInstance1.PrivateIp
+  BeInstance2:
+    Description: be instance 2
+    Value: !Ref BeInstance2
+  BeInstancePrivateIp2:
+    Value: !GetAtt BeInstance2.PrivateIp
+  BeInstance3:
+    Description: be instance 3
+    Value: !Ref BeInstance3
+  BeInstancePrivateIp3:
+    Value: !GetAtt BeInstance3.PrivateIp

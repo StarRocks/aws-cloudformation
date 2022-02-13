@@ -12,6 +12,7 @@ Metadata:
         default: Node type configuration
       Parameters:
       - FeInstanceType
+      - BeInstanceType
     - Label:
         default: Fe configuration
       Parameters:
@@ -45,14 +46,13 @@ Metadata:
       - CatalogTryLockTimeoutMs
       - IgnoreUnknownLogId
       - LatestAmiId
-      - BeInstancePrivateIp1
-      - BeInstancePrivateIp2
-      - BeInstancePrivateIp3
     ParameterLabels:
       PrivateSubnetID:
         default: Private subnet ID
       FeInstanceType:
         default: Fe instance type
+      BeInstanceType:
+        default: Be instance type
       LogDir:
         default: Dir to save fe log
       SysLogLevel:
@@ -113,12 +113,6 @@ Metadata:
         default: Ignore unknown logId
       LatestAmiId:
         default: AMI with StarRocks
-      BeInstancePrivateIp1:
-        default: be ip 1
-      BeInstancePrivateIp2:
-        default: be ip 2
-      BeInstancePrivateIp3:
-        default: be ip 3
 Parameters: 
   PrivateSubnetID: 
     Description: The Private Subnet ID that you want to deploy Fe nodes.
@@ -129,6 +123,40 @@ Parameters:
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
     Default: CFT-Test
   FeInstanceType: 
+    Description: Amazon EC2 instance type for the fe nodes.
+    Type: String
+    Default: t2.micro
+    AllowedValues: 
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+      - m4.large
+      - m4.xlarge
+      - m4.2xlarge
+      - m4.4xlarge
+      - m4.10xlarge
+      - m5.large
+      - m5.xlarge
+      - m5.2xlarge
+      - m5.4xlarge
+      - c4.large
+      - c4.xlarge
+      - c4.2xlarge
+      - c4.4xlarge
+      - c4.8xlarge
+      - r5.large
+      - r5.xlarge
+      - r5.2xlarge
+      - r5.4xlarge
+      - r5.8xlarge
+      - i3.large
+      - i3.xlarge
+      - i3.2xlarge
+      - i3.4xlarge
+      - i3.8xlarge
+      - i3.16xlarge
+  BeInstanceType: 
     Description: Amazon EC2 instance type for the fe nodes.
     Type: String
     Default: t2.micro
@@ -298,17 +326,98 @@ Parameters:
   LatestAmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: String
-    Default: ami-0b6caa99885a3e317
-  BeInstancePrivateIp1:
-    Description: be ip 1
-    Type: String
-  BeInstancePrivateIp2:
-    Description: be ip 2
-    Type: String
-  BeInstancePrivateIp3:
-    Description: be ip 3
-    Type: String
+    Default: ami-0d1a988128feef741
 Resources:
+  BeInstance1:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref BeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance1 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          mkdir -p storage
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance1 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
+  BeInstance2:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref BeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance2 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          mkdir -p storage
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance2 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
+  BeInstance3:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 1
+      AWS::CloudFormation::Init:
+        install_server:
+          files:
+            "/var/www/html/index.html":
+              content: |
+                Hello world!
+              mode: 000644
+              owner: centos
+              group: centos
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref BeInstanceType
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance3 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          mkdir -p storage
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance3 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
   FeInstance:
     Type: AWS::EC2::Instance
     Metadata:
@@ -335,10 +444,7 @@ Resources:
           mkdir -p meta
           source /etc/profile
           bin/start_fe.sh --daemon
-          echo ${BeInstancePrivateIp1} >> 1.ip
-          echo ${BeInstancePrivateIp2} >> 2.ip
-          python addBe.py ${BeInstancePrivateIp1} ${BeInstancePrivateIp2} ${BeInstancePrivateIp3} >> addbe.log
-          echo ${BeInstancePrivateIp3} >> 3.ip
+          BeInstance1.PrivateIp >> be.IP
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:

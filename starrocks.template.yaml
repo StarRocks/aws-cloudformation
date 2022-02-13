@@ -16,7 +16,6 @@ Metadata:
       - StarRocksBeNodeInstanceType
       - StarRocksBrokerNodeCount
       - StarRocksBrokerNodeInstanceType
-      - LatestAmiId
     ParameterLabels:
       StarRocksFeNodeCount:
         default: Number of StarRocks Fe
@@ -30,8 +29,6 @@ Metadata:
         default: Number of StarRocks Broker
       StarRocksBrokerNodeInstanceType:
         default: Broker instance type
-      LatestAmiId:
-        default: Latest Amazon Linux2 AMI ID
 Parameters:
   StarRocksFeNodeCount:
     Type: String
@@ -128,20 +125,16 @@ Parameters:
     Default: t2.micro
     Description: Amazon EC2 instance type for Broker instances.
     Type: String
-  LatestAmiId:
-    Description: Reference the latest Amazon Linux2 AMI in an AWS CloudFormation template.
-    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/starrocks
-Conditions:
 Resources:
-  FeStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-    TemplateURL:
-    Parameters:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-    TemplateURL:
-    Parameters:
-Outputs:
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220445YT-starrocks_be.template.yaml
+  FeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022044WRu-starrocks_fe.template.yaml
+      Parameters: 
+        BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
+        BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
+        BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
