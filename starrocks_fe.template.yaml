@@ -167,10 +167,7 @@ Resources:
           mkdir -p meta
           source /etc/profile
           bin/start_fe.sh --daemon
-          echo ${BeInstancePrivateIp1} >> 1.ip
-          echo ${BeInstancePrivateIp2} >> 2.ip
-          python addBe.py ${BeInstancePrivateIp1} ${BeInstancePrivateIp2} ${BeInstancePrivateIp3} >> addbe.log
-          echo ${BeInstancePrivateIp3} >> 3.ip
+          python /home/ec2-user/tool/cluster-tool.py ${BeInstancePrivateIp1} ${BeInstancePrivateIp2} ${BeInstancePrivateIp3} >> addbe.log
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:

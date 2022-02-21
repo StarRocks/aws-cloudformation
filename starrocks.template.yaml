@@ -107,7 +107,7 @@ Parameters:
   AmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: String
-    Default: ami-0b6caa99885a3e317
+    Default: ami-0e11bc1aa58311f73
   FeNodeCount:
     Type: String
     Default: 1
@@ -273,7 +273,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022052gue-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022052Bbp-starrocks_be.template.yaml
       Parameters:
         PrivateSubnetID: !Ref PrivateSubnetID
         KeyPairName: !Ref KeyPairName
@@ -289,7 +289,7 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022052Dnx-starrocks_fe.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022052Ju5-starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !Ref PrivateSubnetID
         KeyPairName: !Ref KeyPairName
