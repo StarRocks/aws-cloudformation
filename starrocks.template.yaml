@@ -8,29 +8,107 @@ Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
     - Label:
-        default: StarRocks configuration
+        default: Network configuration
       Parameters:
-      - StarRocksFeNodeCount
-      - StarRocksFeNodeInstanceType
-      - StarRocksBeNodeCount
-      - StarRocksBeNodeInstanceType
-      - StarRocksBrokerNodeCount
-      - StarRocksBrokerNodeInstanceType
+      - PrivateSubnetID
+    - Label:
+        default: EC2 configuration
+      Parameters:
+      - KeyPairName
+    - Label:
+        default: AMI's id
+      Parameters:
+      - AmiId
+    - Label:
+        default: StarRocks Cluster configuration
+      Parameters:
+      - FeNodeCount
+      - FeNodeInstanceType
+      - BeNodeCount
+      - BeNodeInstanceType
+      - BrokerNodeCount
+      - BrokerNodeInstanceType
+    - Label:
+        default: BE configuration
+      Parameters:
+      - SysLogDir
+      - SysLogLevel
+      - BePort
+      - BeRpcPort
+      - WebserverPort
+      - HeartbeatServicePort
+      - BrpcPort
+    - Label:
+        default: Fe configuration
+      Parameters:
+      - LogDir
+      - SysLogLevel
+      - MetaDir
+      - HttpPort
+      - RpcPort
+      - QueryPort
+      - EditLogPort
     ParameterLabels:
-      StarRocksFeNodeCount:
+      PrivateSubnetID:
+        default: Private subnet ID
+      KeyPairName:
+        default: Key pair name
+      AmiId:
+        default: Ami id
+      FeNodeCount:
         default: Number of StarRocks Fe
-      StarRocksFeNodeInstanceType:
+      FeNodeInstanceType:
         default: Fe instance type
-      StarRocksBeNodeCount:
+      BeNodeCount:
         default: Number of StarRocks Be
-      StarRocksBeNodeInstanceType:
+      BeNodeInstanceType:
         default: Be instance type
-      StarRocksBrokerNodeCount:
+      BrokerNodeCount:
         default: Number of StarRocks Broker
-      StarRocksBrokerNodeInstanceType:
+      BrokerNodeInstanceType:
         default: Broker instance type
+      SysLogDir:
+        default: Dir to save be sys log
+      SysLogLevel:
+        default: Sys Log Level
+      BePort:
+        default: Be port
+      BeRpcPort:
+        default: Be Rpc port
+      WebserverPort:
+        default: Webserver port
+      HeartbeatServicePort:
+        default: Heartbeat service port
+      BrpcPort:
+        default: Brpc port
+      LogDir:
+        default: Dir to save fe log
+      SysLogLevel:
+        default: Sys Log Level
+      MetaDir:
+        default: Meta data dir
+      HttpPort:
+        default: Fe http port
+      RpcPort:
+        default: Fe rpc port
+      QueryPort:
+        default: Fe query port
+      EditLogPort:
+        default: Fe edit log port
 Parameters:
-  StarRocksFeNodeCount:
+  PrivateSubnetID:
+    Description: The Private Subnet ID that you want to deploy Fe nodes.
+    Type: String
+    Default: 10.0.0.0/19
+  KeyPairName: 
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Public/private key pairs allow you to securely connect to your instance after it launches.
+    Default: CFT-Test
+  AmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: String
+    Default: ami-0b6caa99885a3e317
+  FeNodeCount:
     Type: String
     Default: 1
     Description: Number of StarRocks Fe
@@ -38,7 +116,7 @@ Parameters:
       - 1
       - 2
       - 3
-  StarRocksFeNodeInstanceType:
+  FeNodeInstanceType:
     AllowedValues:
       - t2.nano
       - t2.micro
@@ -61,7 +139,7 @@ Parameters:
     Default: t2.micro
     Description: Amazon EC2 instance type for fe instances.
     Type: String
-  StarRocksBeNodeCount:
+  BeNodeCount:
     Type: String
     Default: 3
     Description: Number of StarRocks Be
@@ -70,7 +148,7 @@ Parameters:
       - 4
       - 5
       - 6
-  StarRocksBeNodeInstanceType:
+  BeNodeInstanceType:
     AllowedValues:
       - t2.nano
       - t2.micro
@@ -93,7 +171,7 @@ Parameters:
     Default: t2.micro
     Description: Amazon EC2 instance type for be instances.
     Type: String
-  StarRocksBrokerNodeCount:
+  BrokerNodeCount:
     Type: String
     Default: 3
     Description: Number of StarRocks Broker
@@ -102,7 +180,7 @@ Parameters:
       - 4
       - 5
       - 6
-  StarRocksBrokerNodeInstanceType:
+  BrokerNodeInstanceType:
     AllowedValues:
       - t2.nano
       - t2.micro
@@ -125,16 +203,106 @@ Parameters:
     Default: t2.micro
     Description: Amazon EC2 instance type for Broker instances.
     Type: String
+  SysLogDir:
+    Description: Dir to save be log, please to fill in the absolute path
+    Type: String
+    Default: To be determined
+  SysLogLevel:
+    Description: Sys Log Level, please select from the drop-down menu
+    Type: String
+    Default: INFO
+    AllowedValues: 
+      - INFO
+      - WARN
+      - ERROR
+      - FATAL
+  BePort:
+    Description: Be port
+    Type: String
+    Default: To be determined
+  BeRpcPort:
+    Description: Be Rpc port
+    Type: String
+    Default: To be determined
+  WebserverPort:
+    Description: Webserver port
+    Type: String
+    Default: To be determined
+  HeartbeatServicePort:
+    Description: Heartbeat service port
+    Type: String
+    Default: To be determined
+  BrpcPort:
+    Description: Brpc port
+    Type: String
+    Default: To be determined
+  LogDir:
+    Description: Dir to save log, please to fill in the absolute path
+    Type: String
+    Default: To be determined
+  SysLogLevel:
+    Description: Sys Log Level, please select from the drop-down menu
+    Type: String
+    Default: INFO
+    AllowedValues: 
+      - INFO
+      - WARN
+      - ERROR
+      - FATAL
+  MetaDir:
+    Description: Dir to save mete data, please to fill in the absolute path
+    Type: String
+    Default: To be determined
+  HttpPort:
+    Description: Fe http port
+    Type: String
+    Default: To be determined
+  RpcPort:
+    Description: Fe rpc port
+    Type: String
+    Default: To be determined
+  QueryPort:
+    Description: Fe query port
+    Type: String
+    Default: To be determined
+  EditLogPort:
+    Description: Fe edit log port
+    Type: String
+    Default: To be determined
 Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220445YT-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022052gue-starrocks_be.template.yaml
+      Parameters:
+        PrivateSubnetID: !Ref PrivateSubnetID
+        KeyPairName: !Ref KeyPairName
+        AmiId: !Ref AmiId
+        BeNodeInstanceType: !Ref BeNodeInstanceType
+        SysLogDir: !Ref SysLogDir
+        SysLogLevel: !Ref SysLogLevel
+        BePort: !Ref BePort
+        BeRpcPort: !Ref BeRpcPort
+        WebserverPort: !Ref WebserverPort
+        HeartbeatServicePort: !Ref HeartbeatServicePort
+        BrpcPort: !Ref BrpcPort
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022044WRu-starrocks_fe.template.yaml
-      Parameters: 
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022052Dnx-starrocks_fe.template.yaml
+      Parameters:
+        PrivateSubnetID: !Ref PrivateSubnetID
+        KeyPairName: !Ref KeyPairName
+        AmiId: !Ref AmiId
+        FeNodeInstanceType: !Ref FeNodeInstanceType
+        LogDir: !Ref LogDir
+        SysLogLevel: !Ref SysLogLevel
+        MetaDir: !Ref MetaDir
+        HttpPort: !Ref HttpPort
+        RpcPort: !Ref RpcPort
+        QueryPort: !Ref QueryPort
+        EditLogPort: !Ref EditLogPort
         BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
         BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
         BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
+        

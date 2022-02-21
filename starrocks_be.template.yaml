@@ -13,51 +13,36 @@ Metadata:
       Parameters:
       - KeyPairName
     - Label:
+        default: AMI's id
+      Parameters:
+      - AmiId
+    - Label:
         default: Node type configuration
       Parameters:
-      - BeInstanceType
+      - BeNodeInstanceType
     - Label:
         default: BE configuration
       Parameters:
-      - SysLogLevel
       - SysLogDir
-      - SysLogRollNum
-      - SysLogRollMode
-      - SysLogVerboseModules
+      - SysLogLevel
       - BePort
       - BeRpcPort
       - WebserverPort
       - HeartbeatServicePort
       - BrpcPort
-      - BitmapMaxFilterRatio
-      - LogBufferLevel
-      - TrashFileExpireTimeSec
-      - DefaultRowsetType
-      - MemLimit
-      - TcUseMemoryMin
-      - FragmentPoolThreadNumMax
-      - ThriftClientRetryIntervalMs
-      - EnableMetricCalculator
-      - DisableStoragePageCache
-      - DisableColumnPool
-      - LatestAmiId
     ParameterLabels:
       PrivateSubnetID:
         default: Private subnet ID
       KeyPairName:
         default: Key pair name
-      BeInstanceType:
+      AmiId:
+        default: AMI with StarRocks
+      BeNodeInstanceType:
         default: Be instance type
-      SysLogLevel:
-        default: Sys Log Level
       SysLogDir:
         default: Dir to save be sys log
-      SysLogRollNum: 
-        default: Sys log roll num
-      SysLogRollMode:
-        default: Sys log roll mode
-      SysLogVerboseModules:
-        default: Sys log verboseModules
+      SysLogLevel:
+        default: Sys Log Level
       BePort:
         default: Be port
       BeRpcPort:
@@ -68,43 +53,19 @@ Metadata:
         default: Heartbeat service port
       BrpcPort:
         default: Brpc port
-      BitmapMaxFilterRatio:
-        default: Bitmap max filter ratio
-      LogBufferLevel:
-        default: Log buffer level
-      TrashFileExpireTimeSec:
-        default: Trash file expireTime sec
-      DefaultRowsetType:
-        default: Default rowset type
-      MemLimit:
-        default: Mem limit
-      TcUseMemoryMin:
-        default: Tc UseMemory min
-      FragmentPoolThreadNumMax:
-        default: Fragment pool thread num max
-      ThriftClientRetryIntervalMs:
-        default: Thrift client retry interval ms
-      EnableMetricCalculator:
-        default: Enable metric calculator
-      DisableStoragePageCache:
-        default: Disable storage page cache
-      DisableColumnPool:
-        default: Disable column pool
-      LatestAmiId:
-        default: AMI with StarRocks
 Parameters: 
   PrivateSubnetID: 
     Description: The Private Subnet ID that you want to deploy Fe nodes.
     Type: String
-    Default: 10.0.0.0/19
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
-    Default: CFT-Test
-  BeInstanceType: 
+  AmiId:
+    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: String
+  BeNodeInstanceType: 
     Description: Amazon EC2 instance type for the be nodes.
     Type: String
-    Default: t2.micro
     AllowedValues: 
       - t2.micro
       - t2.small
@@ -135,108 +96,32 @@ Parameters:
       - i3.4xlarge
       - i3.8xlarge
       - i3.16xlarge
+  SysLogDir:
+    Description: Dir to save be log, please to fill in the absolute path
+    Type: String
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
-    Default: INFO
     AllowedValues: 
       - INFO
       - WARN
       - ERROR
       - FATAL
-  SysLogDir:
-    Description: Dir to save be log, please to fill in the absolute path
-    Type: String
-    Default: To be determined
-  SysLogRollNum: 
-    Description: Sys log roll num
-    Type: String
-    Default: To be determined
-  SysLogRollMode:
-    Description: Sys log roll mode
-    Type: String
-    Default: To be determined
-  SysLogVerboseModules:
-    Description: Sys log verboseModules
-    Type: String
-    Default: To be determined
   BePort:
     Description: Be port
     Type: String
-    Default: To be determined
   BeRpcPort:
     Description: Be Rpc port
     Type: String
-    Default: To be determined
   WebserverPort:
     Description: Webserver port
     Type: String
-    Default: To be determined
   HeartbeatServicePort:
     Description: Heartbeat service port
     Type: String
-    Default: To be determined
   BrpcPort:
     Description: Brpc port
     Type: String
-    Default: To be determined
-  BitmapMaxFilterRatio:
-    Description: Bitmap max filter ratio
-    Type: String
-    Default: To be determined
-  LogBufferLevel:
-    Description: Log buffer level
-    Type: String
-    Default: To be determined
-  TrashFileExpireTimeSec:
-    Description: Trash file expireTime sec
-    Type: String
-    Default: To be determined
-  DefaultRowsetType:
-    Description: Default rowset type
-    Type: String
-    Default: To be determined
-  MemLimit:
-    Description: Mem limit
-    Type: String
-    Default: To be determined
-  TcUseMemoryMin:
-    Description: Tc UseMemory min
-    Type: String
-    Default: To be determined
-  FragmentPoolThreadNumMax:
-    Description: Fragment pool thread num max
-    Type: String
-    Default: To be determined
-  ThriftClientRetryIntervalMs:
-    Description: Thrift client retry interval ms
-    Type: String
-    Default: To be determined
-  EnableMetricCalculator:
-    Description: Enable metric calculator
-    Type: String
-    Default: True
-    AllowedValues: 
-      - True
-      - False
-  DisableStoragePageCache:
-    Description: Disable storage page cache
-    Type: String
-    Default: True
-    AllowedValues: 
-      - True
-      - False
-  DisableColumnPool:
-    Description: Disable column pool
-    Type: String
-    Default: True
-    AllowedValues: 
-      - True
-      - False
-  LatestAmiId:
-    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
-    Type: String
-    Default: ami-0d1a988128feef741
 Resources:
   BeInstance1:
     Type: AWS::EC2::Instance
@@ -253,8 +138,8 @@ Resources:
               group: centos
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref LatestAmiId
-      InstanceType: !Ref BeInstanceType
+      ImageId: !Ref AmiId
+      InstanceType: !Ref BeNodeInstanceType
       UserData:
         Fn::Base64:
           !Sub |
@@ -283,8 +168,8 @@ Resources:
               group: centos
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref LatestAmiId
-      InstanceType: !Ref BeInstanceType
+      ImageId: !Ref AmiId
+      InstanceType: !Ref BeNodeInstanceType
       UserData:
         Fn::Base64:
           !Sub |
@@ -313,8 +198,8 @@ Resources:
               group: centos
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref LatestAmiId
-      InstanceType: !Ref BeInstanceType
+      ImageId: !Ref AmiId
+      InstanceType: !Ref BeNodeInstanceType
       UserData:
         Fn::Base64:
           !Sub |
