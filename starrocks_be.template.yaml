@@ -126,7 +126,7 @@ Resources:
   BeInstance1:
     Type: AWS::EC2::Instance
     Metadata:
-      Comment: Install be instance replica 1
+      Comment: Install be instance replica 3
       AWS::CloudFormation::Init:
         install_server:
           files:
@@ -140,6 +140,7 @@ Resources:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId
       InstanceType: !Ref BeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
       UserData:
         Fn::Base64:
           !Sub |
@@ -156,7 +157,7 @@ Resources:
   BeInstance2:
     Type: AWS::EC2::Instance
     Metadata:
-      Comment: Install be instance replica 1
+      Comment: Install be instance replica 2
       AWS::CloudFormation::Init:
         install_server:
           files:
@@ -170,6 +171,7 @@ Resources:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId
       InstanceType: !Ref BeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
       UserData:
         Fn::Base64:
           !Sub |
@@ -186,7 +188,7 @@ Resources:
   BeInstance3:
     Type: AWS::EC2::Instance
     Metadata:
-      Comment: Install be instance replica 1
+      Comment: Install be instance replica 3
       AWS::CloudFormation::Init:
         install_server:
           files:
@@ -200,6 +202,7 @@ Resources:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId
       InstanceType: !Ref BeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
       UserData:
         Fn::Base64:
           !Sub |
