@@ -318,39 +318,57 @@ Resources:
         VPCFlowLogsMaxAggregationInterval: 600
         VPCFlowLogsTrafficType: REJECT
         VPCTenancy: default
-  BeStack:
+  BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022053bkG-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022053jyA-linux-bastion.template.yaml
       Parameters:
-        PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+        BastionAMIOS: !Ref BastionAMIOS
+        BastionInstanceType: !Ref BastionInstanceType
+        OSImageOverride: !Ref LatestAmiId
+        NumBastionHosts: 2
         KeyPairName: !Ref KeyPairName
-        AmiId: !Ref AmiId
-        BeNodeInstanceType: !Ref BeNodeInstanceType
-        SysLogDir: !Ref SysLogDir
-        SysLogLevel: !Ref SysLogLevel
-        BePort: !Ref BePort
-        BeRpcPort: !Ref BeRpcPort
-        WebserverPort: !Ref WebserverPort
-        HeartbeatServicePort: !Ref HeartbeatServicePort
-        BrpcPort: !Ref BrpcPort
-  FeStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220531ro-starrocks_fe.template.yaml
-      Parameters:
-        PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
-        KeyPairName: !Ref KeyPairName
-        AmiId: !Ref AmiId
-        FeNodeInstanceType: !Ref FeNodeInstanceType
-        LogDir: !Ref LogDir
-        SysLogLevel: !Ref SysLogLevel
-        MetaDir: !Ref MetaDir
-        HttpPort: !Ref HttpPort
-        RpcPort: !Ref RpcPort
-        QueryPort: !Ref QueryPort
-        EditLogPort: !Ref EditLogPort
-        BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
-        BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
-        BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
+        EnableTCPForwarding: 'true'
+        PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
+        PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
+        RemoteAccessCIDR: !Ref RemoteAccessCIDR
+        VPCID: !GetAtt VPCStack.Outputs.VPCID
+        # QSS3BucketName: !Ref QSS3BucketName
+        # QSS3BucketRegion: !Ref QSS3BucketRegion
+        # QSS3KeyPrefix: !Sub '${QSS3KeyPrefix}submodules/quickstart-linux-bastion/'
+  # BeStack:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022053bkG-starrocks_be.template.yaml
+  #     Parameters:
+  #       PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+  #       KeyPairName: !Ref KeyPairName
+  #       AmiId: !Ref AmiId
+  #       BeNodeInstanceType: !Ref BeNodeInstanceType
+  #       SysLogDir: !Ref SysLogDir
+  #       SysLogLevel: !Ref SysLogLevel
+  #       BePort: !Ref BePort
+  #       BeRpcPort: !Ref BeRpcPort
+  #       WebserverPort: !Ref WebserverPort
+  #       HeartbeatServicePort: !Ref HeartbeatServicePort
+  #       BrpcPort: !Ref BrpcPort
+  # FeStack:
+  #   Type: AWS::CloudFormation::Stack
+  #   Properties:
+  #     TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220531ro-starrocks_fe.template.yaml
+  #     Parameters:
+  #       PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+  #       KeyPairName: !Ref KeyPairName
+  #       AmiId: !Ref AmiId
+  #       FeNodeInstanceType: !Ref FeNodeInstanceType
+  #       LogDir: !Ref LogDir
+  #       SysLogLevel: !Ref SysLogLevel
+  #       MetaDir: !Ref MetaDir
+  #       HttpPort: !Ref HttpPort
+  #       RpcPort: !Ref RpcPort
+  #       QueryPort: !Ref QueryPort
+  #       EditLogPort: !Ref EditLogPort
+  #       BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
+  #       BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
+  #       BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
         
