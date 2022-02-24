@@ -320,20 +320,20 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022054TcR-bastion.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055UhM-bastion.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
         ParentStack: ppll
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
-        ImageID: !Ref AmiId
+        ImageID: ami-019ef4a13f29ddecb
         RemoteAccessCIDR: 0.0.0.0/0
         AdminEmailAddress: ccc@ccc.com
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055ciC-securitygroups.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055W0L-securitygroups.template.yaml
       Parameters:
         AccessCIDR: 0.0.0.0/0
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -342,7 +342,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022053bkG-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055p6g-starrocks_be.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
