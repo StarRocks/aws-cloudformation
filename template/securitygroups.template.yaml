@@ -41,80 +41,54 @@ Parameters:
     Description: The BastionSecurityGroupID range that is permitted to access.
     Type: String
 Resources:
-  ClickHouseServerSecurityGroup:
+  StarRocksServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow access to ClickHouse port.
+      GroupDescription: Allow access to StarRocks port.
       VpcId: !Ref VPCID
       SecurityGroupIngress:
       - IpProtocol: tcp
-        FromPort: 2181
-        ToPort: 2181
+        FromPort: 9060
+        ToPort: 9060
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 2888
-        ToPort: 2888
+        FromPort: 8040
+        ToPort: 8040
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 3888
-        ToPort: 3888
+        FromPort: 9050
+        ToPort: 9050
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 9000
-        ToPort: 9000
+        FromPort: 8060
+        ToPort: 8060
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 9009
-        ToPort: 9009
+        FromPort: 8030
+        ToPort: 8030
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 8123
-        ToPort: 8123
+        FromPort: 9020
+        ToPort: 9020
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 9116
-        ToPort: 9116
+        FromPort: 9030
+        ToPort: 9030
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
-        FromPort: 9100
-        ToPort: 9100
+        FromPort: 9010
+        ToPort: 9010
         CidrIp: !Ref VPCCIDR
       - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
         SourceSecurityGroupId: !Ref BastionSecurityGroupID
-      SecurityGroupEgress:
-      - IpProtocol: tcp
-        FromPort: 0
-        ToPort: 65535
-        CidrIp: 0.0.0.0/0
-  AdminServerSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: App server security group.
-      VpcId: !Ref VPCID
-      SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        SourceSecurityGroupId: !Ref BastionSecurityGroupID
-      - IpProtocol: tcp
-        FromPort: 9090
-        ToPort: 9090
-        CidrIp: !Ref AccessCIDR
-      - IpProtocol: tcp
-        FromPort: 3000
-        ToPort: 3000
-        CidrIp: !Ref AccessCIDR  
       SecurityGroupEgress:
       - IpProtocol: tcp
         FromPort: 0
         ToPort: 65535
         CidrIp: 0.0.0.0/0
 Outputs:
-  ClickHouseServerSecurityGroup:
-    Description: ClickHouse Security Group
-    Value: !Ref ClickHouseServerSecurityGroup
-  AdminServerSecurityGroup:
-    Description: Admin Server Security Group
-    Value: !Ref AdminServerSecurityGroup
+  StarRocksServerSecurityGroup:
+    Description: StarRocks Security Group
+    Value: !Ref StarRocksServerSecurityGroup

@@ -8,6 +8,7 @@ Metadata:
         default: Network configuration
       Parameters:
       - PrivateSubnetID
+      - StarRocksServerSecurityGroup
     - Label:
         default: EC2 configuration
       Parameters:
@@ -36,6 +37,8 @@ Metadata:
     ParameterLabels:
       PrivateSubnetID:
         default: Private subnet ID
+      StarRocksServerSecurityGroup:
+        default: StarRocks Server Security Group
       KeyPairName:
         default: Key pair name
       AmiId:
@@ -65,6 +68,9 @@ Metadata:
 Parameters: 
   PrivateSubnetID: 
     Description: The Private Subnet ID that you want to deploy Fe nodes.
+    Type: String
+  StarRocksServerSecurityGroup: 
+    Description: StarRocks Server Security Group.
     Type: String
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
@@ -159,6 +165,8 @@ Resources:
       ImageId: !Ref AmiId
       InstanceType: !Ref FeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
       UserData:
         Fn::Base64:
           !Sub |
