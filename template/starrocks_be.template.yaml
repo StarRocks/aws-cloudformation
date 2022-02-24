@@ -181,8 +181,11 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance1 --region ${AWS::Region}
+          sudo mkfs.xfs /dev/xvdh
+          sudo mkdir -p /home/data
+          sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
-          mkdir -p storage
+          echo "storage_root_path = /home/data" >> conf/be.conf
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance1 --region ${AWS::Region}
     CreationPolicy:
@@ -212,8 +215,11 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance2 --region ${AWS::Region}
+          sudo mkfs.xfs /dev/xvdh
+          sudo mkdir -p /home/data
+          sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
-          mkdir -p storage
+          echo "storage_root_path = /home/data" >> conf/be.conf
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance2 --region ${AWS::Region}
     CreationPolicy:
@@ -243,8 +249,11 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance3 --region ${AWS::Region}
+          sudo mkfs.xfs /dev/xvdh
+          sudo mkdir -p /home/data
+          sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
-          mkdir -p storage
+          echo "storage_root_path = /home/data" >> conf/be.conf
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance3 --region ${AWS::Region}
     CreationPolicy:
