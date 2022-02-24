@@ -38,6 +38,9 @@ Metadata:
       - BeRpcPort
       - WebserverPort
       - HeartbeatServicePort
+      - BrpcPort
+      - VolumeType
+      - VolumeSize
     - Label:
         default: Fe configuration
       Parameters:
@@ -83,6 +86,10 @@ Metadata:
         default: Heartbeat service port
       BrpcPort:
         default: Brpc port
+      VolumeType:
+        default: Volume type of Be nodes
+      VolumeSize:
+        default: Volume size of Be nodes
       LogDir:
         default: Dir to save fe log
       SysLogLevel:
@@ -241,6 +248,19 @@ Parameters:
     Description: Brpc port
     Type: String
     Default: To be determined
+  VolumeType: 
+    Type: String
+    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
+    Default: gp2
+    AllowedValues:
+      - gp2
+      - gp3
+      - st1
+      - io1
+  VolumeSize: 
+    Type: String
+    Description: EBS volume size (data) to be attached to node in GBs.
+    Default: 50
   LogDir:
     Description: Dir to save log, please to fill in the absolute path
     Type: String
@@ -342,7 +362,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055p6g-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055OsE-starrocks_be.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
@@ -356,6 +376,8 @@ Resources:
         WebserverPort: !Ref WebserverPort
         HeartbeatServicePort: !Ref HeartbeatServicePort
         BrpcPort: !Ref BrpcPort
+        VolumeType: !Ref VolumeType
+        VolumeSize: !Ref VolumeSize
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:

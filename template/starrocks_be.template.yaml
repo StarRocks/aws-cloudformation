@@ -31,6 +31,9 @@ Metadata:
       - WebserverPort
       - HeartbeatServicePort
       - BrpcPort
+      - VolumeType
+      - VolumeSize
+      - Iops
     ParameterLabels:
       PrivateSubnetID:
         default: Private subnet ID
@@ -56,6 +59,12 @@ Metadata:
         default: Heartbeat service port
       BrpcPort:
         default: Brpc port
+      VolumeType:
+        default: Volume type of Be nodes
+      VolumeSize:
+        default: Volume size of Be nodes
+      Iops:
+        default: IOPS of Be nodes
 Parameters: 
   PrivateSubnetID: 
     Description: The Private Subnet ID that you want to deploy Fe nodes.
@@ -128,20 +137,31 @@ Parameters:
   BrpcPort:
     Description: Brpc port
     Type: String
+  VolumeType: 
+    Type: String
+    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
+    Default: gp2
+    AllowedValues:
+      - gp2
+      - gp3
+      - st1
+      - io1
+  VolumeSize: 
+    Type: String
+    Description: EBS volume size (data) to be attached to node in GBs.
+    Default: 50
+  Iops: 
+    Type: String
+    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
+    Default: 1000
+Conditions:
+  UseIops: 
+    Fn::Equals: [!Ref VolumeType,"io1"]
 Resources:
   BeInstance1:
     Type: AWS::EC2::Instance
     Metadata:
-      Comment: Install be instance replica 3
-      AWS::CloudFormation::Init:
-        install_server:
-          files:
-            "/var/www/html/index.html":
-              content: |
-                Hello world!
-              mode: 000644
-              owner: centos
-              group: centos
+      Comment: Install be instance replica 1
     Properties:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId
@@ -149,6 +169,13 @@ Resources:
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
       - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdh
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
@@ -166,15 +193,6 @@ Resources:
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install be instance replica 2
-      AWS::CloudFormation::Init:
-        install_server:
-          files:
-            "/var/www/html/index.html":
-              content: |
-                Hello world!
-              mode: 000644
-              owner: centos
-              group: centos
     Properties:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId
@@ -182,6 +200,13 @@ Resources:
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
       - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdh
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
@@ -199,15 +224,6 @@ Resources:
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install be instance replica 3
-      AWS::CloudFormation::Init:
-        install_server:
-          files:
-            "/var/www/html/index.html":
-              content: |
-                Hello world!
-              mode: 000644
-              owner: centos
-              group: centos
     Properties:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId
@@ -215,6 +231,13 @@ Resources:
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
       - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdh
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
