@@ -11,7 +11,6 @@ Metadata:
         default: Network configuration
       Parameters:
       - AvailabilityZones
-      - PrivateSubnetID
     - Label:
         default: EC2 configuration
       Parameters:
@@ -54,8 +53,6 @@ Metadata:
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
-      PrivateSubnetID:
-        default: Private subnet ID
       KeyPairName:
         default: Key pair name
       AmiId:
@@ -106,12 +103,8 @@ Metadata:
         default: Fe edit log port
 Parameters:
   AvailabilityZones:
-    Description: 'List of Availability Zones (AZs) to use for the VPC subnets. More AZs improve the availability of the system, and fewer AZs reduce the cost of data traffic between AZs).'
+    Description: List of Availability Zones (AZs) to use for the VPC subnets. More AZs improve the availability of the system, and fewer AZs reduce the cost of data traffic between AZs).Please select two or more
     Type: List<AWS::EC2::AvailabilityZone::Name>
-  PrivateSubnetID:
-    Description: The Private Subnet ID that you want to deploy Fe nodes.
-    Type: String
-    Default: 10.0.0.0/19
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
