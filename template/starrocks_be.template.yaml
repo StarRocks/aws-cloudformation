@@ -21,6 +21,7 @@ Metadata:
         default: Node type configuration
       Parameters:
       - BeNodeInstanceType
+      - BeNodeCount
     - Label:
         default: BE configuration
       Parameters:
@@ -45,6 +46,8 @@ Metadata:
         default: AMI with StarRocks
       BeNodeInstanceType:
         default: Be instance type
+      BeNodeCount:
+        default: Be node count
       SysLogDir:
         default: Dir to save be sys log
       SysLogLevel:
@@ -111,6 +114,14 @@ Parameters:
       - i3.4xlarge
       - i3.8xlarge
       - i3.16xlarge
+  BeNodeCount:
+    Type: Number
+    Description: Number of StarRocks Be
+    AllowedValues: 
+      - 3
+      - 4
+      - 5
+      - 6
   SysLogDir:
     Description: Dir to save be log, please to fill in the absolute path
     Type: String
@@ -157,8 +168,22 @@ Parameters:
 Conditions:
   UseIops: 
     Fn::Equals: [!Ref VolumeType,"io1"]
+  3NodesCondition: !Or 
+    - !Equals [!Ref 'BeNodeCount', '3']
+    - !Equals [!Ref 'BeNodeCount', '4']
+    - !Equals [!Ref 'BeNodeCount', '5']
+    - !Equals [!Ref 'BeNodeCount', '6']
+  4NodesCondition: !Or  
+    - !Equals [!Ref 'BeNodeCount', '4']
+    - !Equals [!Ref 'BeNodeCount', '5']
+    - !Equals [!Ref 'BeNodeCount', '6']
+  5NodesCondition: !Or 
+    - !Equals [!Ref 'BeNodeCount', '5'] 
+    - !Equals [!Ref 'BeNodeCount', '6']
+  6NodesCondition: !Equals [!Ref 'BeNodeCount', '6']
 Resources:
   BeInstance1:
+    Condition: 3NodesCondition
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install be instance replica 1
@@ -193,6 +218,7 @@ Resources:
         Count: 1
         Timeout: "PT10M"
   BeInstance2:
+    Condition: 3NodesCondition
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install be instance replica 2
@@ -227,6 +253,7 @@ Resources:
         Count: 1
         Timeout: "PT10M"
   BeInstance3:
+    Condition: 3NodesCondition
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install be instance replica 3
@@ -260,19 +287,151 @@ Resources:
       ResourceSignal:
         Count: 1
         Timeout: "PT10M"
+  BeInstance4:
+    Condition: 4NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 4
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref AmiId
+      InstanceType: !Ref BeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdh
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance4 --region ${AWS::Region}
+          sudo mkfs.xfs /dev/xvdh
+          sudo mkdir -p /home/data
+          sudo mount /dev/xvdh /home/data
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          echo "storage_root_path = /home/data" >> conf/be.conf
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance4 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
+  BeInstance5:
+    Condition: 5NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 5
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref AmiId
+      InstanceType: !Ref BeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdh
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance5 --region ${AWS::Region}
+          sudo mkfs.xfs /dev/xvdh
+          sudo mkdir -p /home/data
+          sudo mount /dev/xvdh /home/data
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          echo "storage_root_path = /home/data" >> conf/be.conf
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance5 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
+  BeInstance6:
+    Condition: 6NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install be instance replica 6
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref AmiId
+      InstanceType: !Ref BeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdh
+        Ebs:
+          VolumeSize: !Ref VolumeSize
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance6 --region ${AWS::Region}
+          sudo mkfs.xfs /dev/xvdh
+          sudo mkdir -p /home/data
+          sudo mount /dev/xvdh /home/data
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+          echo "storage_root_path = /home/data" >> conf/be.conf
+          bin/start_be.sh --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance6 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT10M"
 Outputs:
   BeInstance1:
+    Condition: 3NodesCondition
     Description: be instance 1
     Value: !Ref BeInstance1
   BeInstancePrivateIp1:
+    Condition: 3NodesCondition
     Value: !GetAtt BeInstance1.PrivateIp
   BeInstance2:
+    Condition: 3NodesCondition
     Description: be instance 2
     Value: !Ref BeInstance2
   BeInstancePrivateIp2:
+    Condition: 3NodesCondition
     Value: !GetAtt BeInstance2.PrivateIp
   BeInstance3:
+    Condition: 3NodesCondition
     Description: be instance 3
     Value: !Ref BeInstance3
   BeInstancePrivateIp3:
+    Condition: 3NodesCondition
     Value: !GetAtt BeInstance3.PrivateIp
+  BeInstance4:
+    Condition: 4NodesCondition
+    Description: be instance 4
+    Value: !Ref BeInstance4
+  BeInstancePrivateIp4:
+    Condition: 4NodesCondition
+    Value: !GetAtt BeInstance4.PrivateIp
+  BeInstance5:
+    Condition: 5NodesCondition
+    Description: be instance 5
+    Value: !Ref BeInstance5
+  BeInstancePrivateIp5:
+    Condition: 5NodesCondition
+    Value: !GetAtt BeInstance5.PrivateIp
+  BeInstance6:
+    Condition: 6NodesCondition
+    Description: be instance 6
+    Value: !Ref BeInstance6
+  BeInstancePrivateIp6:
+    Condition: 6NodesCondition
+    Value: !GetAtt BeInstance6.PrivateIp
