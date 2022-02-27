@@ -12,9 +12,11 @@ import os
 time.sleep(30)
 db = MySQLdb.connect(host = '127.0.0.1', user = 'root', passwd = '', port = 9030, connect_timeout=10)
 cursor = db.cursor()
-cursor.execute("ALTER SYSTEM ADD BACKEND '%s:9050'"%sys.argv[1])
-cursor.execute("ALTER SYSTEM ADD BACKEND '%s:9050'"%sys.argv[2])
-cursor.execute("ALTER SYSTEM ADD BACKEND '%s:9050'"%sys.argv[3])
+for index in range(len(sys.argv)):
+    if index == 0:
+        continue
+    if sys.argv[index] != '0.0.0.0':
+        cursor.execute("ALTER SYSTEM ADD BACKEND '%s:9050'"%sys.argv[index])
 data = cursor.fetchone()
 db.close()
 ```

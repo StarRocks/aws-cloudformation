@@ -112,7 +112,7 @@ Parameters:
   AmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
     Type: String
-    Default: ami-0e11bc1aa58311f73
+    Default: ami-0bd79263a676ee313
   FeNodeCount:
     Type: Number
     Default: 1
@@ -287,6 +287,15 @@ Parameters:
     Description: Fe edit log port
     Type: String
     Default: To be determined
+Conditions:
+  4BeNodesCondition: !Or  
+    - !Equals [!Ref 'BeNodeCount', '4']
+    - !Equals [!Ref 'BeNodeCount', '5']
+    - !Equals [!Ref 'BeNodeCount', '6']
+  5BeNodesCondition: !Or 
+    - !Equals [!Ref 'BeNodeCount', '5'] 
+    - !Equals [!Ref 'BeNodeCount', '6']
+  6BeNodesCondition: !Equals [!Ref 'BeNodeCount', '6']
 Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
@@ -372,24 +381,36 @@ Resources:
         BrpcPort: !Ref BrpcPort
         VolumeType: !Ref VolumeType
         VolumeSize: !Ref VolumeSize
-  # FeStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220551wM-starrocks_fe.template.yaml
-  #     Parameters:
-  #       PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
-  #       StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
-  #       KeyPairName: !Ref KeyPairName
-  #       AmiId: !Ref AmiId
-  #       FeNodeInstanceType: !Ref FeNodeInstanceType
-  #       LogDir: !Ref LogDir
-  #       SysLogLevel: !Ref SysLogLevel
-  #       MetaDir: !Ref MetaDir
-  #       HttpPort: !Ref HttpPort
-  #       RpcPort: !Ref RpcPort
-  #       QueryPort: !Ref QueryPort
-  #       EditLogPort: !Ref EditLogPort
-  #       BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
-  #       BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
-  #       BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
+  FeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058eOi-starrocks_fe.template.yaml
+      Parameters:
+        PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+        StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
+        KeyPairName: !Ref KeyPairName
+        AmiId: !Ref AmiId
+        FeNodeInstanceType: !Ref FeNodeInstanceType
+        LogDir: !Ref LogDir
+        SysLogLevel: !Ref SysLogLevel
+        MetaDir: !Ref MetaDir
+        HttpPort: !Ref HttpPort
+        RpcPort: !Ref RpcPort
+        QueryPort: !Ref QueryPort
+        EditLogPort: !Ref EditLogPort
+        BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
+        BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
+        BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
+        BeInstancePrivateIp4: !If
+          - 4BeNodesCondition
+          - !GetAtt BeStack.Outputs.BeInstancePrivateIp4
+          - 0.0.0.0
+        BeInstancePrivateIp5: !If
+          - 5BeNodesCondition
+          - !GetAtt BeStack.Outputs.BeInstancePrivateIp5
+          - 0.0.0.0
+        BeInstancePrivateIp6: !If
+          - 6BeNodesCondition
+          - !GetAtt BeStack.Outputs.BeInstancePrivateIp6
+          - 0.0.0.0
         
