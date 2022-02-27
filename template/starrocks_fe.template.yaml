@@ -168,16 +168,7 @@ Resources:
   FeInstance:
     Type: AWS::EC2::Instance
     Metadata:
-      Comment: Install be instance replica 1
-      AWS::CloudFormation::Init:
-        install_server:
-          files:
-            "/var/www/html/index.html":
-              content: |
-                Hello world!
-              mode: 000644
-              owner: centos
-              group: centos
+      Comment: Install fe master instance
     Properties:
       KeyName: !Ref KeyPairName
       ImageId: !Ref AmiId

@@ -18,7 +18,11 @@ Metadata:
     - Label:
         default: AMI's id
       Parameters:
-      - AmiId
+      - StaRocksAmiId
+    - Label:
+        default: Bastion AMI's id
+      Parameters:
+      - BastionAmiId
     - Label:
         default: StarRocks Cluster configuration
       Parameters:
@@ -54,8 +58,10 @@ Metadata:
         default: Availability Zones
       KeyPairName:
         default: Key pair name
-      AmiId:
-        default: Ami id
+      StaRocksAmiId:
+        default: StaRocks Ami Id
+      BastionAmiId:
+        default: Bastion Ami Id
       FeNodeCount:
         default: Number of StarRocks Fe
       FeNodeInstanceType:
@@ -106,10 +112,14 @@ Parameters:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
     Default: CFT-Test
-  AmiId:
-    Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+  StaRocksAmiId:
+    Description: StaRocksAmiId
     Type: String
     Default: ami-0bd79263a676ee313
+  BastionAmiId:
+    Description: BastionAmiId
+    Type: String
+    Default: ami-019ef4a13f29ddecb
   FeNodeCount:
     Type: Number
     Default: 1
@@ -342,9 +352,9 @@ Resources:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
-        ImageID: ami-019ef4a13f29ddecb
+        ImageID: !Ref BastionAmiId
         RemoteAccessCIDR: 0.0.0.0/0
-        AdminEmailAddress: ccc@ccc.com
+        AdminEmailAddress: starrocks@starrocks.com
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -363,7 +373,7 @@ Resources:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
         KeyPairName: !Ref KeyPairName
-        AmiId: !Ref AmiId
+        AmiId: !Ref StaRocksAmiId
         BeNodeInstanceType: !Ref BeNodeInstanceType
         SysLogDir: !Ref SysLogDir
         SysLogLevel: !Ref SysLogLevel
@@ -381,7 +391,7 @@ Resources:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
         KeyPairName: !Ref KeyPairName
-        AmiId: !Ref AmiId
+        AmiId: !Ref StaRocksAmiId
         FeNodeInstanceType: !Ref FeNodeInstanceType
         LogDir: !Ref LogDir
         SysLogLevel: !Ref SysLogLevel
