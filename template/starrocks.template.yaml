@@ -208,7 +208,7 @@ Parameters:
   SysLogDir:
     Description: Dir to save be log, please to fill in the absolute path
     Type: String
-    Default: To be determined
+    Default: ${STARROCKS_HOME}/log
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -250,7 +250,7 @@ Parameters:
   LogDir:
     Description: Dir to save log, please to fill in the absolute path
     Type: String
-    Default: To be determined
+    Default: ${STARROCKS_HOME}/log
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -263,23 +263,23 @@ Parameters:
   MetaDir:
     Description: Dir to save mete data, please to fill in the absolute path
     Type: String
-    Default: To be determined
+    Default: ${STARROCKS_HOME}/meta
   HttpPort:
     Description: Fe http port
     Type: String
-    Default: To be determined
+    Default: 8030
   RpcPort:
     Description: Fe rpc port
     Type: String
-    Default: To be determined
+    Default: 9020
   QueryPort:
     Description: Fe query port
     Type: String
-    Default: To be determined
+    Default: 9030
   EditLogPort:
     Description: Fe edit log port
     Type: String
-    Default: To be determined
+    Default: 9010
 Conditions:
   4BeNodesCondition: !Or  
     - !Equals [!Ref 'BeNodeCount', '4']
@@ -335,7 +335,7 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220585aB-bastion.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058W5w-bastion.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
         ParentStack: StarRocksCluster
@@ -357,7 +357,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022056Hab-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058zjr-starrocks_be.template.yaml
       Parameters:
         BeNodeCount: !Ref BeNodeCount
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
@@ -368,7 +368,6 @@ Resources:
         SysLogDir: !Ref SysLogDir
         SysLogLevel: !Ref SysLogLevel
         BePort: !Ref BePort
-        BeRpcPort: !Ref BeRpcPort
         WebserverPort: !Ref WebserverPort
         HeartbeatServicePort: !Ref HeartbeatServicePort
         BrpcPort: !Ref BrpcPort
@@ -377,7 +376,7 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058eOi-starrocks_fe.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058fBq-starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
