@@ -28,7 +28,6 @@ Metadata:
       - SysLogDir
       - SysLogLevel
       - BePort
-      - BeRpcPort
       - WebserverPort
       - HeartbeatServicePort
       - BrpcPort
@@ -54,8 +53,6 @@ Metadata:
         default: Sys Log Level
       BePort:
         default: Be port
-      BeRpcPort:
-        default: Be Rpc port
       WebserverPort:
         default: Webserver port
       HeartbeatServicePort:
@@ -135,9 +132,6 @@ Parameters:
       - FATAL
   BePort:
     Description: Be port
-    Type: String
-  BeRpcPort:
-    Description: Be Rpc port
     Type: String
   WebserverPort:
     Description: Webserver port

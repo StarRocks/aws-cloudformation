@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: McAfee-ePO Bastion Stack which manages the remote management of the machines.
+Description: StarRocks Bastion Stack which manages the remote management of the machines.
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: McAfee ePolicy Orchestrator Platform Configuration
+          default: StarRocks ePolicy Orchestrator Platform Configuration
         Parameters:
           - Environment
           - KeyPairName
@@ -71,7 +71,6 @@ Parameters:
     Description: Parent stack name by which bastion stack is deriving if any.
     MinLength: 1
     MaxLength: 256
-    Default: cccc
     Type: String
   ImageID:
     Description: AMI id for bastion instance, starts with ami
@@ -146,10 +145,10 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
         - Key: Product
-          Value: McAfee-ePO-Bastion
+          Value: StarRocks-ePO-Bastion
         - Key: Solution
-          Value: McAfee-ePO
-        - Key: mcafee:cloudformation:stack-name
+          Value: StarRocks-ePO
+        - Key: StarRocks:cloudformation:stack-name
           Value: !Sub ${ParentStack}
 
   # Bastion Internal Security Group
@@ -172,10 +171,10 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
         - Key: Product
-          Value: McAfee-ePO-Bastion
+          Value: StarRocks-ePO-Bastion
         - Key: Solution
-          Value: McAfee-ePO
-        - Key: mcafee:cloudformation:stack-name
+          Value: StarRocks-ePO
+        - Key: StarRocks:cloudformation:stack-name
           Value: !Sub ${ParentStack}
 
   # EC2 instance role
@@ -254,11 +253,11 @@ Resources:
           Value: !Ref Environment
         - Key: Product
           PropagateAtLaunch: true
-          Value: McAfee-ePO-Bastion
+          Value: StarRocks-ePO-Bastion
         - Key: Solution
           PropagateAtLaunch: true
-          Value: McAfee-ePO
-        - Key: mcafee:cloudformation:stack-name
+          Value: StarRocks-ePO
+        - Key: StarRocks:cloudformation:stack-name
           PropagateAtLaunch: true
           Value: !Sub ${ParentStack}
       VPCZoneIdentifier:

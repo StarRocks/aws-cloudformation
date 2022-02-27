@@ -34,7 +34,6 @@ Metadata:
       - SysLogDir
       - SysLogLevel
       - BePort
-      - BeRpcPort
       - WebserverPort
       - HeartbeatServicePort
       - BrpcPort
@@ -75,8 +74,6 @@ Metadata:
         default: Sys Log Level
       BePort:
         default: Be port
-      BeRpcPort:
-        default: Be Rpc port
       WebserverPort:
         default: Webserver port
       HeartbeatServicePort:
@@ -224,23 +221,19 @@ Parameters:
   BePort:
     Description: Be port
     Type: String
-    Default: To be determined
-  BeRpcPort:
-    Description: Be Rpc port
-    Type: String
-    Default: To be determined
+    Default: 9060
   WebserverPort:
     Description: Webserver port
     Type: String
-    Default: To be determined
+    Default: 8040
   HeartbeatServicePort:
     Description: Heartbeat service port
     Type: String
-    Default: To be determined
+    Default: 9050
   BrpcPort:
     Description: Brpc port
     Type: String
-    Default: To be determined
+    Default: 8060
   VolumeType: 
     Type: String
     Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
@@ -342,10 +335,10 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055UhM-bastion.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220585aB-bastion.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
-        ParentStack: ppll
+        ParentStack: StarRocksCluster
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         PublicSubnet1ID: !GetAtt VPCStack.Outputs.PublicSubnet1ID
         PublicSubnet2ID: !GetAtt VPCStack.Outputs.PublicSubnet2ID
@@ -412,5 +405,4 @@ Resources:
         BeInstancePrivateIp6: !If
           - 6BeNodesCondition
           - !GetAtt BeStack.Outputs.BeInstancePrivateIp6
-          - 0.0.0.0
-        
+          - 0.0.0.0        
