@@ -191,7 +191,7 @@ Parameters:
   LogDir:
     Description: Dir to save log, please to fill in the absolute path
     Type: String
-    Default: fe default log path
+    Default: feDefaultLogPath
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -204,7 +204,7 @@ Parameters:
   MetaDir:
     Description: Dir to save mete data, please to fill in the absolute path
     Type: String
-    Default: fe default meta path
+    Default: feDefaultMetaPath
   HttpPort:
     Description: Fe http port
     Type: String
@@ -226,7 +226,7 @@ Parameters:
   SysLogDir:
     Description: Dir to save be log, please to fill in the absolute path
     Type: String
-    Default: be default log path
+    Default: beDefaultLogPath
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -361,7 +361,7 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059ONB-starrocks_fe.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059p8T-starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup

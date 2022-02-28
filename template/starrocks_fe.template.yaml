@@ -189,9 +189,23 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeMasterInstance --region ${AWS::Region}
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
-          mkdir -p meta
           source /etc/profile
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 = "feDefaultMetaPath" ];then' >> params.sh
+          echo '    mkdir -p meta' >> params.sh
+          echo 'else' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# meta_dir/ c\meta_dir = $1" conf/fe.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'if [ $2 != "feDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $2' >> params.sh
+          echo '    sed -i "/^LOG_DIR/ c\LOG_DIR = $2" conf/fe.conf' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $2" conf/fe.conf' >> params.sh
+          echo '    sed -i "/^# audit_log_dir/ c\audit_log_dir = $2" conf/fe.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
+          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel} 
           bin/start_fe.sh --daemon
           python /home/ec2-user/tool/cluster-tool.py ${BeInstancePrivateIp1} ${BeInstancePrivateIp2} ${BeInstancePrivateIp3} ${BeInstancePrivateIp4} ${BeInstancePrivateIp5} ${BeInstancePrivateIp6} >> addbe.log
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeMasterInstance --region ${AWS::Region}
@@ -216,9 +230,23 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance1 --region ${AWS::Region}
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
-          mkdir -p meta
           source /etc/profile
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 = "feDefaultMetaPath" ];then' >> params.sh
+          echo '    mkdir -p meta' >> params.sh
+          echo 'else' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# meta_dir/ c\meta_dir = $1" conf/fe.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'if [ $2 != "feDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $2' >> params.sh
+          echo '    sed -i "/^LOG_DIR/ c\LOG_DIR = $2" conf/fe.conf' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $2" conf/fe.conf' >> params.sh
+          echo '    sed -i "/^# audit_log_dir/ c\audit_log_dir = $2" conf/fe.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
+          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel} 
           bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance1 --region ${AWS::Region}
     CreationPolicy:
@@ -242,9 +270,23 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance2 --region ${AWS::Region}
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
-          mkdir -p meta
           source /etc/profile
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 = "feDefaultMetaPath" ];then' >> params.sh
+          echo '    mkdir -p meta' >> params.sh
+          echo 'else' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# meta_dir/ c\meta_dir = $1" conf/fe.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'if [ $2 != "feDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $2' >> params.sh
+          echo '    sed -i "/^LOG_DIR/ c\LOG_DIR = $2" conf/fe.conf' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $2" conf/fe.conf' >> params.sh
+          echo '    sed -i "/^# audit_log_dir/ c\audit_log_dir = $2" conf/fe.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
+          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel} 
           bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
     CreationPolicy:
