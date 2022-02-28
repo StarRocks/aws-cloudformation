@@ -23,6 +23,8 @@ Metadata:
         default: Bastion AMI's id
       Parameters:
       - BastionAmiId
+
+    # StarRocks Cluster configuration
     - Label:
         default: StarRocks Cluster configuration
       Parameters:
@@ -30,8 +32,20 @@ Metadata:
       - FeNodeInstanceType
       - BeNodeCount
       - BeNodeInstanceType
-      - BrokerNodeCount
-      - BrokerNodeInstanceType
+
+    # Fe configuration
+    - Label:
+        default: Fe configuration
+      Parameters:
+      - LogDir
+      - SysLogLevel
+      - MetaDir
+      - HttpPort
+      - RpcPort
+      - QueryPort
+      - EditLogPort
+    
+    # BE configuration
     - Label:
         default: BE configuration
       Parameters:
@@ -43,16 +57,6 @@ Metadata:
       - BrpcPort
       - VolumeType
       - VolumeSize
-    - Label:
-        default: Fe configuration
-      Parameters:
-      - LogDir
-      - SysLogLevel
-      - MetaDir
-      - HttpPort
-      - RpcPort
-      - QueryPort
-      - EditLogPort
     ParameterLabels:
       AvailabilityZones:
         default: Availability Zones
@@ -70,10 +74,24 @@ Metadata:
         default: Number of StarRocks Be
       BeNodeInstanceType:
         default: Be instance type
-      BrokerNodeCount:
-        default: Number of StarRocks Broker
-      BrokerNodeInstanceType:
-        default: Broker instance type
+
+      # FE
+      LogDir:
+        default: Dir to save fe log
+      SysLogLevel:
+        default: Sys Log Level
+      MetaDir:
+        default: Meta data dir
+      HttpPort:
+        default: Fe http port
+      RpcPort:
+        default: Fe rpc port
+      QueryPort:
+        default: Fe query port
+      EditLogPort:
+        default: Fe edit log port
+
+      # BE
       SysLogDir:
         default: Dir to save be sys log
       SysLogLevel:
@@ -90,20 +108,6 @@ Metadata:
         default: Volume type of Be nodes
       VolumeSize:
         default: Volume size of Be nodes
-      LogDir:
-        default: Dir to save fe log
-      SysLogLevel:
-        default: Sys Log Level
-      MetaDir:
-        default: Meta data dir
-      HttpPort:
-        default: Fe http port
-      RpcPort:
-        default: Fe rpc port
-      QueryPort:
-        default: Fe query port
-      EditLogPort:
-        default: Fe edit log port
 Parameters:
   AvailabilityZones:
     Description: List of Availability Zones (AZs) to use for the VPC subnets. More AZs improve the availability of the system, and fewer AZs reduce the cost of data traffic between AZs).Please select two or more
@@ -183,42 +187,47 @@ Parameters:
     Default: t2.micro
     Description: Amazon EC2 instance type for be instances.
     Type: String
-  BrokerNodeCount:
-    Type: Number
-    Default: 3
-    Description: Number of StarRocks Broker
-    AllowedValues: 
-      - 3
-      - 4
-      - 5
-      - 6
-  BrokerNodeInstanceType:
-    AllowedValues:
-      - t2.nano
-      - t2.micro
-      - t2.small
-      - t2.medium
-      - t2.large
-      - t3.micro
-      - t3.small
-      - t3.medium
-      - t3.large
-      - t3.xlarge
-      - t3.2xlarge
-      - m5.large
-      - m5.xlarge
-      - m5.2xlarge
-      - m4.large
-      - m4.xlarge
-      - m4.2xlarge
-      - m4.4xlarge
-    Default: t2.micro
-    Description: Amazon EC2 instance type for Broker instances.
+
+  # Fe
+  LogDir:
+    Description: Dir to save log, please to fill in the absolute path
     Type: String
+    Default: fe default log path
+  SysLogLevel:
+    Description: Sys Log Level, please select from the drop-down menu
+    Type: String
+    Default: INFO
+    AllowedValues: 
+      - INFO
+      - WARN
+      - ERROR
+      - FATAL
+  MetaDir:
+    Description: Dir to save mete data, please to fill in the absolute path
+    Type: String
+    Default: fe default meta path
+  HttpPort:
+    Description: Fe http port
+    Type: String
+    Default: 8030
+  RpcPort:
+    Description: Fe rpc port
+    Type: String
+    Default: 9020
+  QueryPort:
+    Description: Fe query port
+    Type: String
+    Default: 9030
+  EditLogPort:
+    Description: Fe edit log port
+    Type: String
+    Default: 9010
+
+  # Be
   SysLogDir:
     Description: Dir to save be log, please to fill in the absolute path
     Type: String
-    Default: ${STARROCKS_HOME}/log
+    Default: be default log path
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -257,39 +266,6 @@ Parameters:
     Type: String
     Description: EBS volume size (data) to be attached to node in GBs.
     Default: 50
-  LogDir:
-    Description: Dir to save log, please to fill in the absolute path
-    Type: String
-    Default: ${STARROCKS_HOME}/log
-  SysLogLevel:
-    Description: Sys Log Level, please select from the drop-down menu
-    Type: String
-    Default: INFO
-    AllowedValues: 
-      - INFO
-      - WARN
-      - ERROR
-      - FATAL
-  MetaDir:
-    Description: Dir to save mete data, please to fill in the absolute path
-    Type: String
-    Default: ${STARROCKS_HOME}/meta
-  HttpPort:
-    Description: Fe http port
-    Type: String
-    Default: 8030
-  RpcPort:
-    Description: Fe rpc port
-    Type: String
-    Default: 9020
-  QueryPort:
-    Description: Fe query port
-    Type: String
-    Default: 9030
-  EditLogPort:
-    Description: Fe edit log port
-    Type: String
-    Default: 9010
 Conditions:
   4BeNodesCondition: !Or  
     - !Equals [!Ref 'BeNodeCount', '4']
@@ -345,7 +321,7 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058W5w-bastion.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220598aE-bastion.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
         ParentStack: StarRocksCluster
@@ -367,7 +343,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058zjr-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220597Nb-starrocks_be.template.yaml
       Parameters:
         BeNodeCount: !Ref BeNodeCount
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
@@ -386,7 +362,7 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022058fBq-starrocks_fe.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059c2n-starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
