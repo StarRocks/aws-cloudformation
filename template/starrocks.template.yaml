@@ -40,10 +40,10 @@ Metadata:
       - LogDir
       - SysLogLevel
       - MetaDir
-      - HttpPort
-      - RpcPort
-      - QueryPort
-      - EditLogPort
+      # - HttpPort
+      # - RpcPort
+      # - QueryPort
+      # - EditLogPort
 
     # BE configuration
     - Label:
@@ -51,10 +51,10 @@ Metadata:
       Parameters:
       - SysLogDir
       - SysLogLevel
-      - BePort
-      - WebserverPort
-      - HeartbeatServicePort
-      - BrpcPort
+      # - BePort
+      # - WebserverPort
+      # - HeartbeatServicePort
+      # - BrpcPort
       - VolumeType
       - VolumeSize
     ParameterLabels:
@@ -82,28 +82,28 @@ Metadata:
         default: Sys Log Level
       MetaDir:
         default: Meta data dir
-      HttpPort:
-        default: Fe http port
-      RpcPort:
-        default: Fe rpc port
-      QueryPort:
-        default: Fe query port
-      EditLogPort:
-        default: Fe edit log port
+      # HttpPort:
+      #   default: Fe http port
+      # RpcPort:
+      #   default: Fe rpc port
+      # QueryPort:
+      #   default: Fe query port
+      # EditLogPort:
+      #   default: Fe edit log port
 
       # BE
       SysLogDir:
         default: Dir to save be sys log
       SysLogLevel:
         default: Sys Log Level
-      BePort:
-        default: Be port
-      WebserverPort:
-        default: Webserver port
-      HeartbeatServicePort:
-        default: Heartbeat service port
-      BrpcPort:
-        default: Brpc port
+      # BePort:
+      #   default: Be port
+      # WebserverPort:
+      #   default: Webserver port
+      # HeartbeatServicePort:
+      #   default: Heartbeat service port
+      # BrpcPort:
+      #   default: Brpc port
       VolumeType:
         default: Volume type of Be nodes
       VolumeSize:
@@ -205,22 +205,22 @@ Parameters:
     Description: Dir to save mete data, please to fill in the absolute path
     Type: String
     Default: feDefaultMetaPath
-  HttpPort:
-    Description: Fe http port
-    Type: String
-    Default: 8030
-  RpcPort:
-    Description: Fe rpc port
-    Type: String
-    Default: 9020
-  QueryPort:
-    Description: Fe query port
-    Type: String
-    Default: 9030
-  EditLogPort:
-    Description: Fe edit log port
-    Type: String
-    Default: 9010
+  # HttpPort:
+  #   Description: Fe http port
+  #   Type: String
+  #   Default: 8030
+  # RpcPort:
+  #   Description: Fe rpc port
+  #   Type: String
+  #   Default: 9020
+  # QueryPort:
+  #   Description: Fe query port
+  #   Type: String
+  #   Default: 9030
+  # EditLogPort:
+  #   Description: Fe edit log port
+  #   Type: String
+  #   Default: 9010
 
   # Be
   SysLogDir:
@@ -236,22 +236,22 @@ Parameters:
       - WARN
       - ERROR
       - FATAL
-  BePort:
-    Description: Be port
-    Type: String
-    Default: 9060
-  WebserverPort:
-    Description: Webserver port
-    Type: String
-    Default: 8040
-  HeartbeatServicePort:
-    Description: Heartbeat service port
-    Type: String
-    Default: 9050
-  BrpcPort:
-    Description: Brpc port
-    Type: String
-    Default: 8060
+  # BePort:
+  #   Description: Be port
+  #   Type: String
+  #   Default: 9060
+  # WebserverPort:
+  #   Description: Webserver port
+  #   Type: String
+  #   Default: 8040
+  # HeartbeatServicePort:
+  #   Description: Heartbeat service port
+  #   Type: String
+  #   Default: 9050
+  # BrpcPort:
+  #   Description: Brpc port
+  #   Type: String
+  #   Default: 8060
   VolumeType: 
     Type: String
     Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
@@ -352,10 +352,10 @@ Resources:
         BeNodeInstanceType: !Ref BeNodeInstanceType
         SysLogDir: !Ref SysLogDir
         SysLogLevel: !Ref SysLogLevel
-        BePort: !Ref BePort
-        WebserverPort: !Ref WebserverPort
-        HeartbeatServicePort: !Ref HeartbeatServicePort
-        BrpcPort: !Ref BrpcPort
+        BePort: 9060
+        WebserverPort: 8040
+        HeartbeatServicePort: 9050
+        BrpcPort: 8060
         VolumeType: !Ref VolumeType
         VolumeSize: !Ref VolumeSize
   FeStack:
@@ -372,10 +372,10 @@ Resources:
         LogDir: !Ref LogDir
         SysLogLevel: !Ref SysLogLevel
         MetaDir: !Ref MetaDir
-        HttpPort: !Ref HttpPort
-        RpcPort: !Ref RpcPort
-        QueryPort: !Ref QueryPort
-        EditLogPort: !Ref EditLogPort
+        HttpPort: 8030
+        RpcPort: 9020
+        QueryPort: 9030
+        EditLogPort: 9010
         BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
         BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
         BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
