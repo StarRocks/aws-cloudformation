@@ -205,6 +205,15 @@ Resources:
           sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           echo "storage_root_path = /home/data" >> conf/be.conf
+          touch params.sh
+          chmod +x params.sh
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 != "beDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $1" conf/be.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
+          bash params.sh ${SysLogDir} ${SysLogLevel}
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance1 --region ${AWS::Region}
     CreationPolicy:
@@ -240,6 +249,15 @@ Resources:
           sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           echo "storage_root_path = /home/data" >> conf/be.conf
+          touch params.sh
+          chmod +x params.sh
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 != "beDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $1" conf/be.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
+          bash params.sh ${SysLogDir} ${SysLogLevel}
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance2 --region ${AWS::Region}
     CreationPolicy:
@@ -275,6 +293,15 @@ Resources:
           sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           echo "storage_root_path = /home/data" >> conf/be.conf
+          touch params.sh
+          chmod +x params.sh
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 != "beDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $1" conf/be.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
+          bash params.sh ${SysLogDir} ${SysLogLevel}
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance3 --region ${AWS::Region}
     CreationPolicy:
@@ -310,6 +337,15 @@ Resources:
           sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           echo "storage_root_path = /home/data" >> conf/be.conf
+          touch params.sh
+          chmod +x params.sh
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 != "beDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $1" conf/be.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
+          bash params.sh ${SysLogDir} ${SysLogLevel}
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance4 --region ${AWS::Region}
     CreationPolicy:
@@ -345,6 +381,15 @@ Resources:
           sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           echo "storage_root_path = /home/data" >> conf/be.conf
+          touch params.sh
+          chmod +x params.sh
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 != "beDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $1" conf/be.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
+          bash params.sh ${SysLogDir} ${SysLogLevel}
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance5 --region ${AWS::Region}
     CreationPolicy:
@@ -380,6 +425,15 @@ Resources:
           sudo mount /dev/xvdh /home/data
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
           echo "storage_root_path = /home/data" >> conf/be.conf
+          touch params.sh
+          chmod +x params.sh
+          echo '#!/bin/bash' >> params.sh
+          echo 'if [ $1 != "beDefaultLogPath" ];then' >> params.sh
+          echo '    mkdir -p $1' >> params.sh
+          echo '    sed -i "/^# sys_log_dir/ c\sys_log_dir = $1" conf/be.conf' >> params.sh
+          echo 'fi' >> params.sh
+          echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
+          bash params.sh ${SysLogDir} ${SysLogLevel}
           bin/start_be.sh --daemon
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance6 --region ${AWS::Region}
     CreationPolicy:

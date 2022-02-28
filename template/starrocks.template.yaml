@@ -44,7 +44,7 @@ Metadata:
       - RpcPort
       - QueryPort
       - EditLogPort
-    
+
     # BE configuration
     - Label:
         default: BE configuration
@@ -342,7 +342,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220597Nb-starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059N0r-starrocks_be.template.yaml
       Parameters:
         BeNodeCount: !Ref BeNodeCount
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
@@ -390,4 +390,4 @@ Resources:
         BeInstancePrivateIp6: !If
           - 6BeNodesCondition
           - !GetAtt BeStack.Outputs.BeInstancePrivateIp6
-          - 0.0.0.0        
+          - 0.0.0.0
