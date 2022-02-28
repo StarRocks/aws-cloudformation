@@ -191,99 +191,81 @@ Resources:
       ResourceSignal:
         Count: 1
         Timeout: "PT60M"
-  # FeFollowerInstance1:
-  #   Type: AWS::EC2::Instance
-  #   Metadata:
-  #     Comment: Install fe follower instance
-  #   Properties:
-  #     KeyName: !Ref KeyPairName
-  #     ImageId: !Ref AmiId
-  #     InstanceType: !Ref FeNodeInstanceType
-  #     SubnetId: !Ref PrivateSubnetID
-  #     SecurityGroupIds:
-  #     - !Ref StarRocksServerSecurityGroup
-  #     UserData:
-  #       Fn::Base64:
-  #         !Sub |
-  #         #!/bin/bash -xe
-  #         /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance1 --region ${AWS::Region}
-  #         cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
-  #         mkdir -p meta
-  #         source /etc/profile
-  #         bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
-  #         touch addToMaster.py
-  #         chmod +x addToMaster.py
-  #         echo '#!/usr/bin/python' >> addToMaster.py
-  #         echo '# -*- coding: UTF-8 -*-' >> addToMaster.py
-  #         echo 'import MySQLdb' >> addToMaster.py
-  #         echo 'import sys' >> addToMaster.py
-  #         echo 'import time' >> addToMaster.py
-  #         echo 'import os' >> addToMaster.py
-  #         echo 'time.sleep(30)' >> addToMaster.py
-  #         echo 'db = MySQLdb.connect(host = sys.argv[1], user = 'root', passwd = '', port = 9030, connect_timeout=10)' >> addToMaster.py
-  #         echo 'cursor = db.cursor()' >> addToMaster.py
-  #         echo 'cursor.execute("ALTER SYSTEM ADD FOLLOWER 'host:9010'"%sys.argv[2])' >> addToMaster.py
-  #         echo 'data = cursor.fetchone()' >> addToMaster.py
-  #         echo 'db.close()' >> addToMaster.py
-  #         echo ${FeFollowerInstance1.PrivateIp} >> local.ip
-  #         /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance1 --region ${AWS::Region}
-  #   CreationPolicy:
-  #     ResourceSignal:
-  #       Count: 1
-  #       Timeout: "PT60M"
-  # FeFollowerInstance2:
-  #   Type: AWS::EC2::Instance
-  #   Metadata:
-  #     Comment: Install fe follower instance
-  #   Properties:
-  #     KeyName: !Ref KeyPairName
-  #     ImageId: !Ref AmiId
-  #     InstanceType: !Ref FeNodeInstanceType
-  #     SubnetId: !Ref PrivateSubnetID
-  #     SecurityGroupIds:
-  #     - !Ref StarRocksServerSecurityGroup
-  #     UserData:
-  #       Fn::Base64:
-  #         !Sub |
-  #         #!/bin/bash -xe
-  #         /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance2 --region ${AWS::Region}
-  #         cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
-  #         mkdir -p meta
-  #         source /etc/profile
-  #         bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
-  #         touch addToMaster.py
-  #         chmod +x addToMaster.py
-  #         echo '#!/usr/bin/python' >> addToMaster.py
-  #         echo '# -*- coding: UTF-8 -*-' >> addToMaster.py
-  #         echo 'import MySQLdb' >> addToMaster.py
-  #         echo 'import sys' >> addToMaster.py
-  #         echo 'import time' >> addToMaster.py
-  #         echo 'import os' >> addToMaster.py
-  #         echo 'time.sleep(30)' >> addToMaster.py
-  #         echo 'db = MySQLdb.connect(host = sys.argv[1], user = 'root', passwd = '', port = 9030, connect_timeout=10)' >> addToMaster.py
-  #         echo 'cursor = db.cursor()' >> addToMaster.py
-  #         echo 'cursor.execute("ALTER SYSTEM ADD FOLLOWER 'host:9010'"%sys.argv[2])' >> addToMaster.py
-  #         echo 'data = cursor.fetchone()' >> addToMaster.py
-  #         echo 'db.close()' >> addToMaster.py
-  #         echo ${FeFollowerInstance2.PrivateIp} >> local.ip
-  #         /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
-  #   CreationPolicy:
-  #     ResourceSignal:
-  #       Count: 1
-  #       Timeout: "PT60M"
+  FeFollowerInstance1:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install fe follower instance
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref AmiId
+      InstanceType: !Ref FeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance1 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          mkdir -p meta
+          source /etc/profile
+          bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance1 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  FeFollowerInstance2:
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install fe follower instance
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref AmiId
+      InstanceType: !Ref FeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance2 --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          touch addToMaster.py
+          chmod +x addToMaster.py
+          echo '#!/usr/bin/python' >> addToMaster.py
+          echo '# -*- coding: UTF-8 -*-' >> addToMaster.py
+          echo 'import MySQLdb' >> addToMaster.py
+          echo 'import sys' >> addToMaster.py
+          echo 'import time' >> addToMaster.py
+          echo 'import os' >> addToMaster.py
+          echo 'time.sleep(30)' >> addToMaster.py
+          echo 'db = MySQLdb.connect(host = sys.argv[1], user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> addToMaster.py
+          echo 'cursor = db.cursor()' >> addToMaster.py
+          echo 'cursor.execute("ALTER SYSTEM ADD FOLLOWER '"'"'%s:9010'"'"'"%sys.argv[2])' >> addToMaster.py
+          echo 'data = cursor.fetchone()' >> addToMaster.py
+          echo 'db.close()' >> addToMaster.py
+          python addToMaster.py ${FeMasterInstance.PrivateIp} ${FeFollowerInstance1.PrivateIp}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
 Outputs:
   FeMasterInstance:
     Description: fe master instance
     Value: !Ref FeMasterInstance
   FeMasterInstancePrivateIp:
     Value: !GetAtt FeMasterInstance.PrivateIp
-  # FeFollowerInstance1:
-  #   Description: fe follower instance
-  #   Value: !Ref FeFollowerInstance1
-  # FeFollowerInstance1PrivateIp:
-  #   Value: !GetAtt FeFollowerInstance1.PrivateIp
+  FeFollowerInstance1:
+    Description: fe follower instance1
+    Value: !Ref FeFollowerInstance1
+  FeFollowerInstance1PrivateIp:
+    Value: !GetAtt FeFollowerInstance1.PrivateIp
   # FeFollowerInstance2:
-  #   Description: fe follower instance
+  #   Description: fe follower instance2
   #   Value: !Ref FeFollowerInstance2
   # FeFollowerInstance2PrivateIp:
   #   Value: !GetAtt FeFollowerInstance2.PrivateIp
