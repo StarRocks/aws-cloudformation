@@ -24,6 +24,7 @@ Metadata:
     - Label:
         default: Fe configuration
       Parameters:
+      - FeNodeCount
       - LogDir
       - SysLogLevel
       - MetaDir
@@ -48,6 +49,8 @@ Metadata:
         default: AMI with StarRocks
       FeNodeInstanceType:
         default: Fe instance type
+      FeNodeCount:
+        default: Fe Node Count
       LogDir:
         default: Dir to save fe log
       SysLogLevel:
@@ -120,6 +123,9 @@ Parameters:
       - i3.4xlarge
       - i3.8xlarge
       - i3.16xlarge
+  FeNodeCount:
+    Description: Fe Node Count
+    Type: Number
   LogDir:
     Description: Dir to save log, please to fill in the absolute path
     Type: String
@@ -164,6 +170,8 @@ Parameters:
   BeInstancePrivateIp6:
     Description: be ip 6
     Type: String
+Conditions:
+  3NodesCondition: !Equals [!Ref 'FeNodeCount', '3']
 Resources:
   FeMasterInstance:
     Type: AWS::EC2::Instance
@@ -192,6 +200,7 @@ Resources:
         Count: 1
         Timeout: "PT60M"
   FeFollowerInstance1:
+    Condition: 3NodesCondition
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install fe follower instance
@@ -217,6 +226,7 @@ Resources:
         Count: 1
         Timeout: "PT60M"
   FeFollowerInstance2:
+    Condition: 3NodesCondition
     Type: AWS::EC2::Instance
     Metadata:
       Comment: Install fe follower instance
@@ -233,6 +243,32 @@ Resources:
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance2 --region ${AWS::Region}
           cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          mkdir -p meta
+          source /etc/profile
+          bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT60M"
+  ToolInstance:
+    Condition: 3NodesCondition
+    Type: AWS::EC2::Instance
+    Metadata:
+      Comment: Install tool instance
+    Properties:
+      KeyName: !Ref KeyPairName
+      ImageId: !Ref AmiId
+      InstanceType: !Ref FeNodeInstanceType
+      SubnetId: !Ref PrivateSubnetID
+      SecurityGroupIds:
+      - !Ref StarRocksServerSecurityGroup
+      UserData:
+        Fn::Base64:
+          !Sub |
+          #!/bin/bash -xe
+          /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource ToolInstance --region ${AWS::Region}
+          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
           touch addToMaster.py
           chmod +x addToMaster.py
           echo '#!/usr/bin/python' >> addToMaster.py
@@ -245,10 +281,11 @@ Resources:
           echo 'db = MySQLdb.connect(host = sys.argv[1], user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> addToMaster.py
           echo 'cursor = db.cursor()' >> addToMaster.py
           echo 'cursor.execute("ALTER SYSTEM ADD FOLLOWER '"'"'%s:9010'"'"'"%sys.argv[2])' >> addToMaster.py
+          echo 'cursor.execute("ALTER SYSTEM ADD FOLLOWER '"'"'%s:9010'"'"'"%sys.argv[3])' >> addToMaster.py
           echo 'data = cursor.fetchone()' >> addToMaster.py
           echo 'db.close()' >> addToMaster.py
-          python addToMaster.py ${FeMasterInstance.PrivateIp} ${FeFollowerInstance1.PrivateIp}
-          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
+          python addToMaster.py ${FeMasterInstance.PrivateIp} ${FeFollowerInstance1.PrivateIp} ${FeFollowerInstance2.PrivateIp}
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ToolInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
         Count: 1
@@ -260,12 +297,16 @@ Outputs:
   FeMasterInstancePrivateIp:
     Value: !GetAtt FeMasterInstance.PrivateIp
   FeFollowerInstance1:
+    Condition: 3NodesCondition
     Description: fe follower instance1
     Value: !Ref FeFollowerInstance1
   FeFollowerInstance1PrivateIp:
+    Condition: 3NodesCondition
     Value: !GetAtt FeFollowerInstance1.PrivateIp
-  # FeFollowerInstance2:
-  #   Description: fe follower instance2
-  #   Value: !Ref FeFollowerInstance2
-  # FeFollowerInstance2PrivateIp:
-  #   Value: !GetAtt FeFollowerInstance2.PrivateIp
+  FeFollowerInstance2:
+    Condition: 3NodesCondition
+    Description: fe follower instance2
+    Value: !Ref FeFollowerInstance2
+  FeFollowerInstance2PrivateIp:
+    Condition: 3NodesCondition
+    Value: !GetAtt FeFollowerInstance2.PrivateIp

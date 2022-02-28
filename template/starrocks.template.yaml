@@ -130,7 +130,6 @@ Parameters:
     Description: Number of StarRocks Fe
     AllowedValues: 
       - 1
-      - 2
       - 3
   FeNodeInstanceType:
     AllowedValues:
@@ -362,13 +361,14 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059IzX-starrocks_fe.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059ONB-starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
         KeyPairName: !Ref KeyPairName
         AmiId: !Ref StaRocksAmiId
         FeNodeInstanceType: !Ref FeNodeInstanceType
+        FeNodeCount: !Ref FeNodeCount
         LogDir: !Ref LogDir
         SysLogLevel: !Ref SysLogLevel
         MetaDir: !Ref MetaDir
