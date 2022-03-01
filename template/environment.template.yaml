@@ -58,6 +58,7 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance1 --region ${AWS::Region}
+          
           mkdir /home/starrocks
           cd /home/starrocks
 

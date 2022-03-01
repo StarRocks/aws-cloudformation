@@ -14,9 +14,11 @@ Metadata:
       Parameters:
       - KeyPairName
     - Label:
-        default: AMI's id
+        default: Environment configuration
       Parameters:
-      - AmiId
+      - LatestAmiId
+      - JDKDownLoadURL
+      - StarRocksDownLoadURL
     - Label:
         default: Node type configuration
       Parameters:
@@ -41,8 +43,12 @@ Metadata:
         default: StarRocks Server Security Group
       KeyPairName:
         default: Key pair name
-      AmiId:
-        default: AMI with StarRocks
+      LatestAmiId:
+        default: Reference the latest Amazon Linux AMI in a CloudFormation template
+      JDKDownLoadURL:
+        default: URL of download JDK 1.8
+      StarRocksDownLoadURL:
+        default: URL of StarRocks
       BeNodeInstanceType:
         default: Be instance type
       BeNodeCount:
@@ -75,8 +81,14 @@ Parameters:
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
-  AmiId:
+  LatestAmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: String
+  JDKDownLoadURL:
+    Description: URL of download JDK 1.8
+    Type: String
+  StarRocksDownLoadURL:
+    Description: URL of StarRocks
     Type: String
   BeNodeInstanceType: 
     Description: Amazon EC2 instance type for the be nodes.
@@ -183,7 +195,7 @@ Resources:
       Comment: Install be instance replica 1
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref BeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -200,10 +212,52 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance1 --region ${AWS::Region}
+
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          source /etc/profile
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
           sudo mkfs.xfs /dev/xvdh
           sudo mkdir -p /home/data
           sudo mount /dev/xvdh /home/data
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+
+          cd /home/starrocks/StarRocks/be
           echo "storage_root_path = /home/data" >> conf/be.conf
           touch params.sh
           chmod +x params.sh
@@ -214,7 +268,9 @@ Resources:
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
           bash params.sh ${SysLogDir} ${SysLogLevel}
+
           bin/start_be.sh --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance1 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -227,7 +283,7 @@ Resources:
       Comment: Install be instance replica 2
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref BeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -244,10 +300,52 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance2 --region ${AWS::Region}
+          
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          source /etc/profile
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
           sudo mkfs.xfs /dev/xvdh
           sudo mkdir -p /home/data
           sudo mount /dev/xvdh /home/data
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+
+          cd /home/starrocks/StarRocks/be
           echo "storage_root_path = /home/data" >> conf/be.conf
           touch params.sh
           chmod +x params.sh
@@ -258,7 +356,9 @@ Resources:
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
           bash params.sh ${SysLogDir} ${SysLogLevel}
+
           bin/start_be.sh --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance2 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -271,7 +371,7 @@ Resources:
       Comment: Install be instance replica 3
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref BeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -288,10 +388,52 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance3 --region ${AWS::Region}
+          
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          source /etc/profile
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
           sudo mkfs.xfs /dev/xvdh
           sudo mkdir -p /home/data
           sudo mount /dev/xvdh /home/data
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+
+          cd /home/starrocks/StarRocks/be
           echo "storage_root_path = /home/data" >> conf/be.conf
           touch params.sh
           chmod +x params.sh
@@ -302,7 +444,9 @@ Resources:
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
           bash params.sh ${SysLogDir} ${SysLogLevel}
+
           bin/start_be.sh --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance3 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -315,7 +459,7 @@ Resources:
       Comment: Install be instance replica 4
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref BeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -332,10 +476,52 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance4 --region ${AWS::Region}
+          
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          source /etc/profile
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
           sudo mkfs.xfs /dev/xvdh
           sudo mkdir -p /home/data
           sudo mount /dev/xvdh /home/data
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+
+          cd /home/starrocks/StarRocks/be
           echo "storage_root_path = /home/data" >> conf/be.conf
           touch params.sh
           chmod +x params.sh
@@ -346,7 +532,9 @@ Resources:
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
           bash params.sh ${SysLogDir} ${SysLogLevel}
+
           bin/start_be.sh --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance4 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -359,7 +547,7 @@ Resources:
       Comment: Install be instance replica 5
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref BeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -376,10 +564,52 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance5 --region ${AWS::Region}
+          
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          source /etc/profile
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
           sudo mkfs.xfs /dev/xvdh
           sudo mkdir -p /home/data
           sudo mount /dev/xvdh /home/data
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+
+          cd /home/starrocks/StarRocks/be
           echo "storage_root_path = /home/data" >> conf/be.conf
           touch params.sh
           chmod +x params.sh
@@ -390,7 +620,9 @@ Resources:
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
           bash params.sh ${SysLogDir} ${SysLogLevel}
+
           bin/start_be.sh --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance5 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -403,7 +635,7 @@ Resources:
       Comment: Install be instance replica 6
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref BeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -420,10 +652,52 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance6 --region ${AWS::Region}
+          
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          source /etc/profile
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
           sudo mkfs.xfs /dev/xvdh
           sudo mkdir -p /home/data
           sudo mount /dev/xvdh /home/data
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/be
+
+          cd /home/starrocks/StarRocks/be
           echo "storage_root_path = /home/data" >> conf/be.conf
           touch params.sh
           chmod +x params.sh
@@ -434,7 +708,9 @@ Resources:
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $2" conf/be.conf' >> params.sh
           bash params.sh ${SysLogDir} ${SysLogLevel}
+
           bin/start_be.sh --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource BeInstance6 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
