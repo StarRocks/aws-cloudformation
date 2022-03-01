@@ -14,9 +14,11 @@ Metadata:
       Parameters:
       - KeyPairName
     - Label:
-        default: AMI's id
+        default: Environment configuration
       Parameters:
-      - AmiId
+      - LatestAmiId
+      - JDKDownLoadURL
+      - StarRocksDownLoadURL
     - Label:
         default: Node type configuration
       Parameters:
@@ -45,8 +47,12 @@ Metadata:
         default: StarRocks Server Security Group
       KeyPairName:
         default: Key pair name
-      AmiId:
-        default: AMI with StarRocks
+      LatestAmiId:
+        default: Reference the latest Amazon Linux AMI in a CloudFormation template
+      JDKDownLoadURL:
+        default: URL of download JDK 1.8
+      StarRocksDownLoadURL:
+        default: URL of StarRocks
       FeNodeInstanceType:
         default: Fe instance type
       FeNodeCount:
@@ -87,8 +93,14 @@ Parameters:
   KeyPairName: 
     Type: AWS::EC2::KeyPair::KeyName
     Description: Public/private key pairs allow you to securely connect to your instance after it launches.
-  AmiId:
+  LatestAmiId:
     Description: Reference the latest Amazon Linux AMI in a CloudFormation template.
+    Type: String
+  JDKDownLoadURL:
+    Description: URL of download JDK 1.8
+    Type: String
+  StarRocksDownLoadURL:
+    Description: URL of StarRocks
     Type: String
   FeNodeInstanceType: 
     Description: Amazon EC2 instance type for the fe nodes.
@@ -179,7 +191,7 @@ Resources:
       Comment: Install fe master instance
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref FeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -189,8 +201,48 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeMasterInstance --region ${AWS::Region}
+
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
           source /etc/profile
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
+          cd /home/starrocks/StarRocks/fe
           echo '#!/bin/bash' >> params.sh
           echo 'if [ $1 = "feDefaultMetaPath" ];then' >> params.sh
           echo '    mkdir -p meta' >> params.sh
@@ -205,9 +257,13 @@ Resources:
           echo '    sed -i "/^# audit_log_dir/ c\audit_log_dir = $2" conf/fe.conf' >> params.sh
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
-          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel} 
+          chmod +x params.sh
+          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel}
+
           bin/start_fe.sh --daemon
-          python /home/ec2-user/tool/cluster-tool.py ${BeInstancePrivateIp1} ${BeInstancePrivateIp2} ${BeInstancePrivateIp3} ${BeInstancePrivateIp4} ${BeInstancePrivateIp5} ${BeInstancePrivateIp6} >> addbe.log
+
+          python /home/starrocks/tool/addBeTool.py ${BeInstancePrivateIp1} ${BeInstancePrivateIp2} ${BeInstancePrivateIp3} ${BeInstancePrivateIp4} ${BeInstancePrivateIp5} ${BeInstancePrivateIp6} >> addbe.log
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeMasterInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -220,7 +276,7 @@ Resources:
       Comment: Install fe follower instance
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref FeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -230,8 +286,48 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance1 --region ${AWS::Region}
+           
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
           source /etc/profile
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
+          cd /home/starrocks/StarRocks/fe
           echo '#!/bin/bash' >> params.sh
           echo 'if [ $1 = "feDefaultMetaPath" ];then' >> params.sh
           echo '    mkdir -p meta' >> params.sh
@@ -246,8 +342,11 @@ Resources:
           echo '    sed -i "/^# audit_log_dir/ c\audit_log_dir = $2" conf/fe.conf' >> params.sh
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
-          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel} 
+          chmod +x params.sh
+          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel}
+
           bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance1 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -260,7 +359,7 @@ Resources:
       Comment: Install fe follower instance
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref FeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -270,8 +369,48 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance2 --region ${AWS::Region}
+           
+          mkdir /home/starrocks
+          cd /home/starrocks
+
+          wget ${JDKDownLoadURL} -O java.tar.gz
+          mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
+          mkdir /usr/java && mv jdk /usr/java
+          echo 'export JAVA_HOME=/usr/java/jdk' >> /etc/profile
+          echo 'export JRE_HOME=/usr/java/jdk/jre' >> /etc/profile
+          echo 'export CLASSPATH=.:/usr/java/jdk/lib:/usr/java/jdk/jre/lib:$CLASSPATH' >> /etc/profile
+          echo 'export JAVA_PATH=/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
+          echo 'export PATH=$PATH:/usr/java/jdk/bin:/usr/java/jdk/jre/bin' >> /etc/profile
           source /etc/profile
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+          rm -rf java.tar.gz
+
+          yum install MySQL-python.x86_64 -y
+          yum install mysql -y
+
+          mkdir -p /home/starrocks/tool
+          echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
+          echo '# -*- coding: UTF-8 -*-' >> /home/starrocks/tool/addBeTool.py
+          echo 'import MySQLdb' >> /home/starrocks/tool/addBeTool.py
+          echo 'import sys' >> /home/starrocks/tool/addBeTool.py
+          echo 'import time' >> /home/starrocks/tool/addBeTool.py
+          echo 'import os' >> /home/starrocks/tool/addBeTool.py
+          echo 'time.sleep(30)' >> /home/starrocks/tool/addBeTool.py
+          echo 'db = MySQLdb.connect(host = '"'"'127.0.0.1'"'"', user = '"'"'root'"'"', passwd = '"'"''"'"', port = 9030, connect_timeout=10)' >> /home/starrocks/tool/addBeTool.py
+          echo 'cursor = db.cursor()' >> /home/starrocks/tool/addBeTool.py
+          echo 'for index in range(len(sys.argv)):' >> /home/starrocks/tool/addBeTool.py
+          echo '    if index == 0:' >> /home/starrocks/tool/addBeTool.py
+          echo '        continue' >> /home/starrocks/tool/addBeTool.py
+          echo '    if sys.argv[index] != '"'"'0.0.0.0'"'"':' >> /home/starrocks/tool/addBeTool.py
+          echo '        cursor.execute("ALTER SYSTEM ADD BACKEND '"'"'%s:9050'"'"'"%sys.argv[index])' >> /home/starrocks/tool/addBeTool.py
+          echo 'data = cursor.fetchone()' >> /home/starrocks/tool/addBeTool.py
+          echo 'db.close()' >> /home/starrocks/tool/addBeTool.py
+          chmod +x /home/starrocks/tool/addBeTool.py
+
+          wget ${StarRocksDownLoadURL} -O starrocks.tar.gz
+          mkdir ./StarRocks && tar -zxvf starrocks.tar.gz -C ./StarRocks --strip-components 1
+          rm -rf starrocks.tar.gz
+
+          cd /home/starrocks/StarRocks/fe
           echo '#!/bin/bash' >> params.sh
           echo 'if [ $1 = "feDefaultMetaPath" ];then' >> params.sh
           echo '    mkdir -p meta' >> params.sh
@@ -286,8 +425,11 @@ Resources:
           echo '    sed -i "/^# audit_log_dir/ c\audit_log_dir = $2" conf/fe.conf' >> params.sh
           echo 'fi' >> params.sh
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
-          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel} 
+          chmod +x params.sh
+          bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel}
+
           bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
+
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:
@@ -300,7 +442,7 @@ Resources:
       Comment: Install tool instance
     Properties:
       KeyName: !Ref KeyPairName
-      ImageId: !Ref AmiId
+      ImageId: !Ref LatestAmiId
       InstanceType: !Ref FeNodeInstanceType
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
@@ -310,7 +452,10 @@ Resources:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource ToolInstance --region ${AWS::Region}
-          cd /home/ec2-user/starrocks/StarRocks-2.0.1/fe
+
+          yum install MySQL-python.x86_64 -y
+          mkdir -p /home/tool
+          cd /home/tool
           touch addToMaster.py
           chmod +x addToMaster.py
           echo '#!/usr/bin/python' >> addToMaster.py
@@ -327,6 +472,7 @@ Resources:
           echo 'data = cursor.fetchone()' >> addToMaster.py
           echo 'db.close()' >> addToMaster.py
           python addToMaster.py ${FeMasterInstance.PrivateIp} ${FeFollowerInstance1.PrivateIp} ${FeFollowerInstance2.PrivateIp}
+          
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource ToolInstance --region ${AWS::Region}
     CreationPolicy:
       ResourceSignal:

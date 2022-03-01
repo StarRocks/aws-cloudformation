@@ -319,36 +319,38 @@ Resources:
         BrpcPort: 8060
         VolumeType: !Ref VolumeType
         VolumeSize: !Ref VolumeSize
-  # FeStack:
-  #   Type: AWS::CloudFormation::Stack
-  #   Properties:
-  #     TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022059p8T-starrocks_fe.template.yaml
-  #     Parameters:
-  #       PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
-  #       StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
-  #       KeyPairName: !Ref KeyPairName
-  #       AmiId: !Ref StaRocksAmiId
-  #       FeNodeInstanceType: !Ref FeNodeInstanceType
-  #       FeNodeCount: !Ref FeNodeCount
-  #       LogDir: !Ref LogDir
-  #       SysLogLevel: !Ref SysLogLevel
-  #       MetaDir: !Ref MetaDir
-  #       HttpPort: 8030
-  #       RpcPort: 9020
-  #       QueryPort: 9030
-  #       EditLogPort: 9010
-  #       BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
-  #       BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
-  #       BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
-  #       BeInstancePrivateIp4: !If
-  #         - 4BeNodesCondition
-  #         - !GetAtt BeStack.Outputs.BeInstancePrivateIp4
-  #         - 0.0.0.0
-  #       BeInstancePrivateIp5: !If
-  #         - 5BeNodesCondition
-  #         - !GetAtt BeStack.Outputs.BeInstancePrivateIp5
-  #         - 0.0.0.0
-  #       BeInstancePrivateIp6: !If
-  #         - 6BeNodesCondition
-  #         - !GetAtt BeStack.Outputs.BeInstancePrivateIp6
-  #         - 0.0.0.0
+  FeStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022060mYS-starrocks_fe.template.yaml
+      Parameters:
+        PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+        StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
+        KeyPairName: !Ref KeyPairName
+        LatestAmiId: !Ref LatestAmiId
+        JDKDownLoadURL: !Ref JDKDownLoadURL
+        StarRocksDownLoadURL: !Ref StarRocksDownLoadURL
+        FeNodeInstanceType: !Ref FeNodeInstanceType
+        FeNodeCount: !Ref FeNodeCount
+        LogDir: !Ref LogDir
+        SysLogLevel: !Ref SysLogLevel
+        MetaDir: !Ref MetaDir
+        HttpPort: 8030
+        RpcPort: 9020
+        QueryPort: 9030
+        EditLogPort: 9010
+        BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
+        BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
+        BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
+        BeInstancePrivateIp4: !If
+          - 4BeNodesCondition
+          - !GetAtt BeStack.Outputs.BeInstancePrivateIp4
+          - 0.0.0.0
+        BeInstancePrivateIp5: !If
+          - 5BeNodesCondition
+          - !GetAtt BeStack.Outputs.BeInstancePrivateIp5
+          - 0.0.0.0
+        BeInstancePrivateIp6: !If
+          - 6BeNodesCondition
+          - !GetAtt BeStack.Outputs.BeInstancePrivateIp6
+          - 0.0.0.0
