@@ -229,7 +229,7 @@ Resources:
       UserData:
         'Fn::Base64': !Sub |
           #!/bin/bash -x
-          aws ec2 associate-address --instance-id $(curl http://169.254.169.254/latest/meta-data/instance-id) --public-ip ${BastionEIP} --allow-reassociation --region ${AWS::Region}
+          yum install mysql -y
 
   # Bastion autoscaling group
   BastionAutoscalingGroup:
