@@ -269,7 +269,7 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022060BFb-bastion.template.yaml
+      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/aws-vpc.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -280,7 +280,7 @@ Resources:
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022055W0L-securitygroups.template.yaml
+      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_securitygroups.template.yaml
       Parameters:
         AccessCIDR: 0.0.0.0/0
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -289,7 +289,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022060a7i-starrocks_be.template.yaml
+      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_be.template.yaml
       Parameters:
         BeNodeCount: !Ref BeNodeCount
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
@@ -310,7 +310,7 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022060mYS-starrocks_fe.template.yaml
+      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
