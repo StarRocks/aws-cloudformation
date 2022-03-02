@@ -8,13 +8,10 @@ Metadata:
     - Label:
         default: Network configuration
       Parameters:
-      - AccessCIDR
       - VPCID
       - VPCCIDR
       - BastionSecurityGroupID
     ParameterLabels:
-      AccessCIDR:
-        default: Access CIDR
       VPCID:
         default: VPC ID
       VPCCIDR:
@@ -22,12 +19,6 @@ Metadata:
       BastionSecurityGroupID:
         default: Bastion security group ID
 Parameters:
-  AccessCIDR:
-    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$
-    ConstraintDescription: Must be a valid IP range in the form x.x.x.x/x.
-    Description: 'CIDR IP range permitted for access. A value of
-      0.0.0.0/0 allows access from any IP address.'
-    Type: String
   VPCID:
     Description: VPC ID of your existing Virtual Private Cloud (VPC) where you want.
       to depoy RDS.

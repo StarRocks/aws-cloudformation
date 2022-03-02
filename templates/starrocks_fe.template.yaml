@@ -30,10 +30,6 @@ Metadata:
       - LogDir
       - SysLogLevel
       - MetaDir
-      - HttpPort
-      - RpcPort
-      - QueryPort
-      - EditLogPort
       - BeInstancePrivateIp1
       - BeInstancePrivateIp2
       - BeInstancePrivateIp3
@@ -63,14 +59,6 @@ Metadata:
         default: Sys Log Level
       MetaDir:
         default: Meta data dir
-      HttpPort:
-        default: Fe http port
-      RpcPort:
-        default: Fe rpc port
-      QueryPort:
-        default: Fe query port
-      EditLogPort:
-        default: Fe edit log port
       BeInstancePrivateIp1:
         default: be ip 1
       BeInstancePrivateIp2:
@@ -151,18 +139,6 @@ Parameters:
       - FATAL
   MetaDir:
     Description: Dir to save mete data, please to fill in the absolute path
-    Type: String
-  HttpPort:
-    Description: Fe http port
-    Type: String
-  RpcPort:
-    Description: Fe rpc port
-    Type: String
-  QueryPort:
-    Description: Fe query port
-    Type: String
-  EditLogPort:
-    Description: Fe edit log port
     Type: String
   BeInstancePrivateIp1:
     Description: be ip 1

@@ -36,7 +36,7 @@ Metadata:
         default: Fe configuration
       Parameters:
       - LogDir
-      - SysLogLevel
+      - LogLevel
       - MetaDir
 
     # BE configuration
@@ -71,7 +71,7 @@ Metadata:
       # FE
       LogDir:
         default: Dir to save fe log
-      SysLogLevel:
+      LogLevel:
         default: Sys Log Level
       MetaDir:
         default: Meta data dir
@@ -173,7 +173,7 @@ Parameters:
     Description: Dir to save log, please to fill in the absolute path
     Type: String
     Default: feDefaultLogPath
-  SysLogLevel:
+  LogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
     Default: INFO
@@ -227,7 +227,7 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/2022053hRF-aws-vpc.template.yaml
+      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/aws-vpc.template.yaml
       Parameters:
         AvailabilityZones:
           !Join
@@ -269,7 +269,7 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/aws-vpc.template.yaml
+      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_bastion.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -282,7 +282,6 @@ Resources:
     Properties:
       TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_securitygroups.template.yaml
       Parameters:
-        AccessCIDR: 0.0.0.0/0
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
         BastionSecurityGroupID: !GetAtt BastionStack.Outputs.BastionSecurityGroupID
@@ -301,10 +300,6 @@ Resources:
         BeNodeInstanceType: !Ref BeNodeInstanceType
         SysLogDir: !Ref SysLogDir
         SysLogLevel: !Ref SysLogLevel
-        BePort: 9060
-        WebserverPort: 8040
-        HeartbeatServicePort: 9050
-        BrpcPort: 8060
         VolumeType: !Ref VolumeType
         VolumeSize: !Ref VolumeSize
   FeStack:
@@ -321,12 +316,8 @@ Resources:
         FeNodeInstanceType: !Ref FeNodeInstanceType
         FeNodeCount: !Ref FeNodeCount
         LogDir: !Ref LogDir
-        SysLogLevel: !Ref SysLogLevel
+        SysLogLevel: !Ref LogLevel
         MetaDir: !Ref MetaDir
-        HttpPort: 8030
-        RpcPort: 9020
-        QueryPort: 9030
-        EditLogPort: 9010
         BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
         BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
         BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3
