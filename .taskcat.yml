@@ -1,0 +1,13 @@
+project:
+  name: quickstart-starrocks-cluster
+  package_lambda: false
+  regions:
+    - cn-northwest-1
+tests:
+  default:
+    template: ./templates/starrocks.template.yaml
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_2]
+    regions:
+    - cn-northwest-1
+    
