@@ -30,6 +30,8 @@ Metadata:
       - LogDir
       - SysLogLevel
       - MetaDir
+      - VolumeType
+      - Iops
       - BeInstancePrivateIp1
       - BeInstancePrivateIp2
       - BeInstancePrivateIp3
@@ -59,6 +61,10 @@ Metadata:
         default: Sys Log Level
       MetaDir:
         default: Meta data dir
+      VolumeType:
+        default: Volume type of fe nodes
+      Iops:
+        default: IOPS of Be nodes
       BeInstancePrivateIp1:
         default: be ip 1
       BeInstancePrivateIp2:
@@ -140,6 +146,19 @@ Parameters:
   MetaDir:
     Description: Dir to save mete data, please to fill in the absolute path
     Type: String
+  VolumeType: 
+    Type: String
+    Description: EBS volume type (data) to be attached to node in GBs [gp2,gp3,st1], one volume for data storage is mounted automatically by CloudFormation stack.
+    Default: gp2
+    AllowedValues:
+      - gp2
+      - gp3
+      - st1
+      - io1
+  Iops: 
+    Type: String
+    Description: IOPS of EBS volume when io1 type is chosen. Otherwise ignored.
+    Default: 1000
   BeInstancePrivateIp1:
     Description: be ip 1
     Type: String
@@ -159,6 +178,8 @@ Parameters:
     Description: be ip 6
     Type: String
 Conditions:
+  UseIops: 
+    Fn::Equals: [!Ref VolumeType,"io1"]
   3NodesCondition: !Equals [!Ref 'FeNodeCount', '3']
 Resources:
   FeMasterInstance:
@@ -172,14 +193,18 @@ Resources:
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
       - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeMasterInstance --region ${AWS::Region}
-
-          mkdir /home/starrocks
-          cd /home/starrocks
 
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
@@ -194,6 +219,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -257,15 +287,19 @@ Resources:
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
       - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance1 --region ${AWS::Region}
-           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
+          
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -279,6 +313,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -340,15 +379,19 @@ Resources:
       SubnetId: !Ref PrivateSubnetID
       SecurityGroupIds:
       - !Ref StarRocksServerSecurityGroup
+      BlockDeviceMappings:
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource FeFollowerInstance2 --region ${AWS::Region}
-           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
+          
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -362,6 +405,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py

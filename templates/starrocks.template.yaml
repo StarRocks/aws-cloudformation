@@ -69,16 +69,12 @@ Metadata:
         default: Be instance type
 
       # FE
-      LogDir:
-        default: Dir to save fe log
       LogLevel:
         default: Sys Log Level
       MetaDir:
         default: Meta data dir
       
       # BE
-      SysLogDir:
-        default: Dir to save be sys log
       SysLogLevel:
         default: Sys Log Level
       VolumeType:
@@ -169,10 +165,6 @@ Parameters:
     Type: String
 
   # Fe
-  LogDir:
-    Description: Dir to save log, please to fill in the absolute path
-    Type: String
-    Default: feDefaultLogPath
   LogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -188,10 +180,6 @@ Parameters:
     Default: feDefaultMetaPath
 
   # Be
-  SysLogDir:
-    Description: Dir to save be log, please to fill in the absolute path
-    Type: String
-    Default: beDefaultLogPath
   SysLogLevel:
     Description: Sys Log Level, please select from the drop-down menu
     Type: String
@@ -288,7 +276,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_be.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220700pm-starrocks_be.template.yaml
       Parameters:
         BeNodeCount: !Ref BeNodeCount
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
@@ -298,14 +286,14 @@ Resources:
         JDKDownLoadURL: !Ref JDKDownLoadURL
         StarRocksDownLoadURL: !Ref StarRocksDownLoadURL
         BeNodeInstanceType: !Ref BeNodeInstanceType
-        SysLogDir: !Ref SysLogDir
+        SysLogDir: beDefaultLogPath
         SysLogLevel: !Ref SysLogLevel
         VolumeType: !Ref VolumeType
         VolumeSize: !Ref VolumeSize
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_fe.template.yaml
+      TemplateURL: https://s3.cn-northwest-1.amazonaws.com.cn/cf-templates-ieth34xkk4vz-cn-northwest-1/20220703nU-starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
@@ -315,9 +303,10 @@ Resources:
         StarRocksDownLoadURL: !Ref StarRocksDownLoadURL
         FeNodeInstanceType: !Ref FeNodeInstanceType
         FeNodeCount: !Ref FeNodeCount
-        LogDir: !Ref LogDir
+        LogDir: feDefaultLogPath
         SysLogLevel: !Ref LogLevel
         MetaDir: !Ref MetaDir
+        VolumeType: !Ref VolumeType
         BeInstancePrivateIp1: !GetAtt BeStack.Outputs.BeInstancePrivateIp1
         BeInstancePrivateIp2: !GetAtt BeStack.Outputs.BeInstancePrivateIp2
         BeInstancePrivateIp3: !GetAtt BeStack.Outputs.BeInstancePrivateIp3

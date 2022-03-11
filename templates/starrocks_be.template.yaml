@@ -183,14 +183,17 @@ Resources:
           VolumeType: !Ref VolumeType
           Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
           DeleteOnTermination: true
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance1 --region ${AWS::Region}
-
-          mkdir /home/starrocks
-          cd /home/starrocks
 
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
@@ -205,6 +208,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -271,15 +279,18 @@ Resources:
           VolumeType: !Ref VolumeType
           Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
           DeleteOnTermination: true
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance2 --region ${AWS::Region}
           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -293,6 +304,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -359,15 +375,18 @@ Resources:
           VolumeType: !Ref VolumeType
           Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
           DeleteOnTermination: true
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance3 --region ${AWS::Region}
           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -381,6 +400,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -447,15 +471,18 @@ Resources:
           VolumeType: !Ref VolumeType
           Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
           DeleteOnTermination: true
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance4 --region ${AWS::Region}
           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -469,6 +496,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -535,15 +567,18 @@ Resources:
           VolumeType: !Ref VolumeType
           Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
           DeleteOnTermination: true
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance5 --region ${AWS::Region}
           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -557,6 +592,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
@@ -623,15 +663,18 @@ Resources:
           VolumeType: !Ref VolumeType
           Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
           DeleteOnTermination: true
+      - DeviceName: /dev/xvdt
+        Ebs:
+          VolumeSize: 50
+          VolumeType: !Ref VolumeType
+          Iops: !If [UseIops,!Ref Iops,!Ref AWS::NoValue]
+          DeleteOnTermination: true
       UserData:
         Fn::Base64:
           !Sub |
           #!/bin/bash -xe
           /opt/aws/bin/cfn-init -v --stack '${AWS::StackName}' --resource BeInstance6 --region ${AWS::Region}
           
-          mkdir /home/starrocks
-          cd /home/starrocks
-
           wget ${JDKDownLoadURL} -O java.tar.gz
           mkdir ./jdk && tar -zxvf java.tar.gz -C ./jdk --strip-components 1
           mkdir /usr/java && mv jdk /usr/java
@@ -645,6 +688,11 @@ Resources:
 
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
+
+          sudo mkfs.xfs /dev/xvdt
+          sudo mkdir -p /home/starrocks
+          sudo mount /dev/xvdt /home/starrocks
+          cd /home/starrocks
 
           mkdir -p /home/starrocks/tool
           echo '#!/usr/bin/python' >> /home/starrocks/tool/addBeTool.py
