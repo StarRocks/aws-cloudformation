@@ -220,8 +220,10 @@ Resources:
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
 
+          sudo adduser starrocks
+          sudo usermod -G starrocks starrocks
+
           sudo mkfs.xfs /dev/xvdt
-          sudo mkdir -p /home/starrocks
           sudo mount /dev/xvdt /home/starrocks
           cd /home/starrocks
 
@@ -265,6 +267,8 @@ Resources:
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
           chmod +x params.sh
           bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel}
+
+          chown -R starrocks:starrocks /home/starrocks
 
           bin/start_fe.sh --daemon
 
@@ -314,8 +318,10 @@ Resources:
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
 
+          sudo adduser starrocks
+          sudo usermod -G starrocks starrocks
+
           sudo mkfs.xfs /dev/xvdt
-          sudo mkdir -p /home/starrocks
           sudo mount /dev/xvdt /home/starrocks
           cd /home/starrocks
 
@@ -359,6 +365,8 @@ Resources:
           echo 'sed -i "/^sys_log_level/ c\sys_log_level = $3" conf/fe.conf' >> params.sh
           chmod +x params.sh
           bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel}
+
+          chown -R starrocks:starrocks /home/starrocks
 
           bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
 
@@ -406,8 +414,10 @@ Resources:
           yum install MySQL-python.x86_64 -y
           yum install mysql -y
 
+          sudo adduser starrocks
+          sudo usermod -G starrocks starrocks
+
           sudo mkfs.xfs /dev/xvdt
-          sudo mkdir -p /home/starrocks
           sudo mount /dev/xvdt /home/starrocks
           cd /home/starrocks
 
@@ -452,6 +462,8 @@ Resources:
           chmod +x params.sh
           bash params.sh ${MetaDir} ${LogDir} ${SysLogLevel}
 
+          chown -R starrocks:starrocks /home/starrocks
+          
           bin/start_fe.sh --helper ${FeMasterInstance.PrivateIp}:9010 --daemon
 
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource FeFollowerInstance2 --region ${AWS::Region}
