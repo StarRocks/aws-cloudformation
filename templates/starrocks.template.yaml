@@ -215,7 +215,7 @@ Resources:
   VPCStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/aws-vpc.template.yaml
+      TemplateURL: https://cf-templates-1euv6e68138u2-us-east-1.s3.amazonaws.com/templates/aws-vpc.template.yaml
       Parameters:
         AvailabilityZones:
           !Join
@@ -257,7 +257,7 @@ Resources:
   BastionStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_bastion.template.yaml
+      TemplateURL: https://cf-templates-1euv6e68138u2-us-east-1.s3.amazonaws.com/templates/starrocks_bastion.template.yaml
       Parameters:
         KeyPairName: !Ref KeyPairName
         VPCID: !GetAtt VPCStack.Outputs.VPCID
@@ -268,7 +268,7 @@ Resources:
   SecurityGroupStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_securitygroups.template.yaml
+      TemplateURL: https://cf-templates-1euv6e68138u2-us-east-1.s3.amazonaws.com/templates/starrocks_securitygroups.template.yaml
       Parameters:
         VPCID: !GetAtt VPCStack.Outputs.VPCID
         VPCCIDR: !GetAtt VPCStack.Outputs.VPCCIDR
@@ -276,7 +276,7 @@ Resources:
   BeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_be.template.yaml
+      TemplateURL: https://cf-templates-1euv6e68138u2-us-east-1.s3.amazonaws.com/templates/starrocks_be.template.yaml
       Parameters:
         BeNodeCount: !Ref BeNodeCount
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
@@ -293,7 +293,7 @@ Resources:
   FeStack:
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: https://starrocks-cft-template.s3.cn-northwest-1.amazonaws.com.cn/templates/starrocks_fe.template.yaml
+      TemplateURL: https://cf-templates-1euv6e68138u2-us-east-1.s3.amazonaws.com/templates/starrocks_fe.template.yaml
       Parameters:
         PrivateSubnetID: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
         StarRocksServerSecurityGroup: !GetAtt SecurityGroupStack.Outputs.StarRocksServerSecurityGroup
