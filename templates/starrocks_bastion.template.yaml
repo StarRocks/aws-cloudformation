@@ -13,7 +13,7 @@ Metadata:
         Parameters:
           - VPCID
           - PublicSubnet1ID
-          - PublicSubnet2ID
+#          - PublicSubnet2ID
       - Label:
           default: Bastion Stack Configuration
         Parameters:
@@ -26,8 +26,8 @@ Metadata:
         default: VPC ID
       PublicSubnet1ID:
         default: Public Subnet 1 ID
-      PublicSubnet2ID:
-        default: Public Subnet 2 ID
+#      PublicSubnet2ID:
+#        default: Public Subnet 2 ID
       LatestAmiId:
         default: Bastion LatestAmiId
       RemoteAccessCIDR:
@@ -42,9 +42,9 @@ Parameters:
   PublicSubnet1ID:
     Description: ID of public subnet 1 in Availability Zone 1 for the ELB load balancer (e.g., subnet-9bc642ac)
     Type: AWS::EC2::Subnet::Id
-  PublicSubnet2ID:
-    Description: ID of public subnet 2 in Availability Zone 2 for the ELB load balancer (e.g., subnet-e3246d8e)
-    Type: AWS::EC2::Subnet::Id
+#  PublicSubnet2ID:
+#    Description: ID of public subnet 2 in Availability Zone 2 for the ELB load balancer (e.g., subnet-e3246d8e)
+#    Type: AWS::EC2::Subnet::Id
   LatestAmiId:
     Description: AMI id for bastion instance, starts with ami
     Type: String
@@ -175,7 +175,7 @@ Resources:
       MinSize: 1
       VPCZoneIdentifier:
         - !Ref PublicSubnet1ID
-        - !Ref PublicSubnet2ID
+#        - !Ref PublicSubnet2ID
 
 Outputs:
   BastionStackName:
